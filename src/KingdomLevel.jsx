@@ -18,7 +18,7 @@
  *   Curso (reino)  →  Tema  →  Descripción del tema + link a la carpeta de apuntes
  *
  * NAVEGACIÓN: no usa react-router. Es un router interno hecho con useState
- * (view: 'home' | 'course' | 'topic' | 'class' | 'notesCourse' | 'notesTopic').
+ * (view: 'home' | 'levels' | 'course' | 'topic' | 'class' | 'notesCourse' | 'notesTopic').
  * Cada clic hace que la pantalla anterior desaparezca por completo y se
  * muestre la nueva vista dentro del mismo sitio: nunca se abre una pestaña
  * nueva ni se redirige a sitios externos — EXCEPTO los botones que son a
@@ -71,6 +71,7 @@ import {
   FolderOpen,
   Handshake,
   UploadCloud,
+  Lock,
 } from 'lucide-react';
 
 /* ------------------------------- TOKENS -------------------------------- */
@@ -419,27 +420,70 @@ const courseData = [
   },
 ];
 
-const RANKS = [
-  { min: 0, title: 'Aprendiz' },
-  { min: 5, title: 'Escudero' },
-  { min: 10, title: 'Caballero' },
-  { min: 15, title: 'Caballero de la Orden' },
-  { min: 20, title: 'Señor del Reino' },
-  { min: 25, title: 'Maestro del Reino' },
-];
+// Total de clases que existen hoy en el sitio. Si más adelante agregas más
+// cursos o clases, esto se recalcula solo y la curva de niveles se estira
+// automáticamente para seguir teniendo sentido.
+const TOTAL_CLASSES = courseData.reduce((a, c) => a + c.topics.reduce((ta, t) => ta + t.classes.length, 0), 0);
 
-function getRankInfo(completedCount) {
-  let level = 1;
-  let current = RANKS[0];
-  for (let i = 0; i < RANKS.length; i++) {
-    if (completedCount >= RANKS[i].min) {
-      current = RANKS[i];
-      level = i + 1;
+// Cuánta "experiencia" vale cada clase completada. Es solo para mostrar un
+// número tipo videojuego (Nv. X · 600 XP); lo que realmente decide el nivel
+// es cuántas clases has completado.
+const XP_PER_CLASS = 100;
+
+// El escalafón del reino: al principio subir de nivel es rápido (como en
+// cualquier juego, para enganchar desde la primera clase), y cada nivel
+// siguiente pide progresivamente más esfuerzo. Los porcentajes son sobre el
+// total de clases del sitio (TOTAL_CLASSES), así que la curva se ajusta sola
+// si agregas o quitas contenido.
+const LEVEL_TITLES = [
+  'Plebeyo del Reino',
+  'Aprendiz',
+  'Escudero',
+  'Paje de la Corte',
+  'Caballero Novicio',
+  'Caballero',
+  'Caballero de la Orden',
+  'Guardián del Reino',
+  'Señor(a) del Reino',
+  'Archimago del Código',
+  'Leyenda de Kingdom Level',
+];
+const LEVEL_FRACTIONS = [0, 0.04, 0.08, 0.15, 0.22, 0.33, 0.44, 0.56, 0.7, 0.85, 1];
+
+const LEVELS = LEVEL_TITLES.map((title, i) => ({
+  level: i + 1,
+  title,
+  classesNeeded: Math.round(LEVEL_FRACTIONS[i] * TOTAL_CLASSES),
+})).map((lvl, i, arr) => {
+  // Garantiza que cada nivel pida al menos una clase más que el anterior.
+  if (i > 0 && lvl.classesNeeded <= arr[i - 1].classesNeeded) {
+    lvl.classesNeeded = Math.min(TOTAL_CLASSES, arr[i - 1].classesNeeded + 1);
+  }
+  return lvl;
+});
+
+function getLevelInfo(completedCount) {
+  let current = LEVELS[0];
+  let idx = 0;
+  for (let i = 0; i < LEVELS.length; i++) {
+    if (completedCount >= LEVELS[i].classesNeeded) {
+      current = LEVELS[i];
+      idx = i;
     }
   }
-  const next = RANKS[level] || null;
-  const pct = next ? Math.min(100, Math.round(((completedCount - current.min) / (next.min - current.min)) * 100)) : 100;
-  return { title: current.title, level, pct };
+  const next = LEVELS[idx + 1] || null;
+  const pct = next
+    ? Math.min(100, Math.round(((completedCount - current.classesNeeded) / (next.classesNeeded - current.classesNeeded)) * 100))
+    : 100;
+  return {
+    level: current.level,
+    title: current.title,
+    pct,
+    xp: completedCount * XP_PER_CLASS,
+    xpForNext: next ? next.classesNeeded * XP_PER_CLASS : current.classesNeeded * XP_PER_CLASS,
+    classesForNext: next ? next.classesNeeded - completedCount : 0,
+    isMaxLevel: !next,
+  };
 }
 
 /* ------------------------------ AYUDANTES -------------------------------- */
@@ -460,6 +504,32 @@ function topicTotals(course, topic, completedMap) {
   const total = topic.classes.length;
   const done = topic.classes.filter((cl) => completedMap[`${course.id}-${topic.id}-${cl.id}`]).length;
   return { total, done };
+}
+
+// Construye un hash de URL para cada estado de navegación. Se usa junto con
+// history.pushState/popstate para que el botón "atrás" del navegador y del
+// celular retrocedan un paso dentro de Kingdom Level en vez de salir del sitio.
+// Profundidad de cada vista dentro de la jerarquía, usada para decidir si una
+// transición de pantalla debe sentirse como "avanzar" o "retroceder".
+const VIEW_DEPTH = { home: 0, levels: 1, course: 1, topic: 2, class: 3, notesCourse: 1, notesTopic: 2 };
+
+function hashForNav(next) {
+  switch (next.view) {
+    case 'levels':
+      return '#niveles';
+    case 'course':
+      return `#curso/${next.courseId}`;
+    case 'topic':
+      return `#curso/${next.courseId}/${next.topicId}`;
+    case 'class':
+      return `#curso/${next.courseId}/${next.topicId}/clase/${next.classId}`;
+    case 'notesCourse':
+      return `#apuntes/${next.notesCourseId}`;
+    case 'notesTopic':
+      return `#apuntes/${next.notesCourseId}/${next.notesTopicId}`;
+    default:
+      return '#inicio';
+  }
 }
 
 /* ------------------------------ COMPONENTES ------------------------------ */
@@ -537,7 +607,7 @@ function MiniBar({ done, total, color }) {
   );
 }
 
-function Header({ level, rankTitle, pct, onHome }) {
+function Header({ level, rankTitle, pct, onHome, completedCount = 0, classesForNext = 0, isMaxLevel = false, onOpenLevels }) {
   return (
     <header
       className="sticky top-0 z-20 flex items-center justify-between gap-4 px-6 md:px-10 py-4 flex-wrap"
@@ -559,9 +629,16 @@ function Header({ level, rankTitle, pct, onHome }) {
         </div>
       </button>
 
-      <div className="flex items-center gap-3 rounded-full px-4 py-2" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-        <Trophy size={16} color={C.gold} />
-        <div className="flex flex-col" style={{ minWidth: 110 }}>
+      <button
+        onClick={onOpenLevels}
+        className="level-badge flex items-center gap-3 rounded-full px-4 py-2"
+        style={{ background: C.surface, border: `1px solid ${C.border}`, cursor: 'pointer' }}
+      >
+        <div key={completedCount} className="relative flex items-center justify-center">
+          <span className="xp-ping" />
+          <Trophy size={16} color={C.gold} style={{ position: 'relative', zIndex: 1 }} />
+        </div>
+        <div className="flex flex-col items-start" style={{ minWidth: 130 }}>
           <span className="text-xs font-semibold" style={{ color: C.text }}>
             Nv. {level} · {rankTitle}
           </span>
@@ -571,8 +648,11 @@ function Header({ level, rankTitle, pct, onHome }) {
               style={{ height: 4, width: `${pct}%`, background: `linear-gradient(90deg, ${C.gold}, ${C.goldBright})`, transition: 'width 0.4s ease' }}
             />
           </div>
+          <span className="mt-1" style={{ color: C.mutedDim, fontSize: '10px' }}>
+            {isMaxLevel ? 'Nivel máximo alcanzado' : `${classesForNext} ${classesForNext === 1 ? 'clase' : 'clases'} para subir`}
+          </span>
         </div>
-      </div>
+      </button>
     </header>
   );
 }
@@ -828,7 +908,7 @@ function NotesSection({ onOpenCourse }) {
 
 function NotesCourseView({ course, onBack, onOpenTopic }) {
   return (
-    <div className="px-6 md:px-10 pb-20 animate-fadein">
+    <div className="px-6 md:px-10 pb-20">
       <button
         onClick={onBack}
         className="back-btn flex items-center gap-2 text-sm mb-8 mt-6"
@@ -893,7 +973,7 @@ function NotesTopicView({ course, topic, onBack }) {
   const notes = topic.notes || { summary: '', keyPoints: [], notesLink: '#' };
 
   return (
-    <div className="px-6 md:px-10 pb-20 animate-fadein">
+    <div className="px-6 md:px-10 pb-20">
       <button
         onClick={onBack}
         className="back-btn flex items-center gap-2 text-sm mb-8 mt-6"
@@ -1138,7 +1218,7 @@ function CourseView({ course, completedMap, onBack, onOpenTopic }) {
   const pct = total ? Math.round((done / total) * 100) : 0;
 
   return (
-    <div className="px-6 md:px-10 pb-20 animate-fadein">
+    <div className="px-6 md:px-10 pb-20">
       <button
         onClick={onBack}
         className="back-btn flex items-center gap-2 text-sm mb-8 mt-6"
@@ -1214,7 +1294,7 @@ function TopicView({ course, topic, completedMap, onBack, onOpenClass }) {
   const topicIndex = course.topics.findIndex((tp) => tp.id === topic.id);
 
   return (
-    <div className="px-6 md:px-10 pb-20 animate-fadein">
+    <div className="px-6 md:px-10 pb-20">
       <button
         onClick={onBack}
         className="back-btn flex items-center gap-2 text-sm mb-8 mt-6"
@@ -1289,7 +1369,7 @@ function ClassView({ course, topic, activeClass, completedMap, onBack, onOpenCla
   const done = !!completedMap[`${course.id}-${topic.id}-${activeClass.id}`];
 
   return (
-    <div className="px-6 md:px-10 pb-20 animate-fadein">
+    <div className="px-6 md:px-10 pb-20">
       <button
         onClick={onBack}
         className="back-btn flex items-center gap-2 text-sm mb-6 mt-6"
@@ -1389,10 +1469,105 @@ function ClassView({ course, topic, activeClass, completedMap, onBack, onOpenCla
   );
 }
 
+/* El escalafón del reino: muestra los 11 niveles como un camino de progreso,
+   resalta dónde está el estudiante hoy y qué falta para el siguiente peldaño. */
+function LevelsView({ completedCount, onBack }) {
+  const info = getLevelInfo(completedCount);
+  const overallPct = TOTAL_CLASSES ? Math.round((completedCount / TOTAL_CLASSES) * 100) : 0;
+
+  return (
+    <div className="px-6 md:px-10 pb-20">
+      <button
+        onClick={onBack}
+        className="back-btn flex items-center gap-2 text-sm mb-8 mt-6"
+        style={{ color: C.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+      >
+        <ChevronLeft size={16} className="back-chevron" /> Volver al reino
+      </button>
+
+      <div
+        className="flex flex-col md:flex-row gap-6 items-start mb-10 p-6 md:p-8 rounded-2xl"
+        style={{ background: C.surface, border: `1px solid ${C.gold}55` }}
+      >
+        <Crest color={C.gold} Icon={Trophy} size={78} pulse />
+        <div className="flex-1 min-w-0">
+          <span className="text-xs uppercase" style={{ color: C.gold, letterSpacing: '0.2em' }}>
+            Escalafón del reino
+          </span>
+          <h2 style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-2xl md:text-3xl mt-2 mb-2">
+            Nivel {info.level} · {info.title}
+          </h2>
+          <p className="text-sm md:text-base mb-4" style={{ color: C.muted }}>
+            {info.isMaxLevel
+              ? 'Completaste todas las clases del reino. No hay nivel más alto que este.'
+              : `Te faltan ${info.classesForNext} ${info.classesForNext === 1 ? 'clase' : 'clases'} para llegar a "${LEVELS[info.level]?.title}".`}
+          </p>
+          <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: C.mutedDim }}>
+            <span className="flex items-center gap-1"><Trophy size={14} /> {info.xp} XP</span>
+            <span className="flex items-center gap-1"><CheckCircle2 size={14} /> {completedCount}/{TOTAL_CLASSES} clases · {overallPct}% del reino</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-lg mb-4">
+        Camino hacia la leyenda
+      </h3>
+      <div className="flex flex-col gap-3">
+        {LEVELS.map((lvl, idx) => {
+          const achieved = completedCount >= lvl.classesNeeded;
+          const isCurrent = lvl.level === info.level;
+          return (
+            <div
+              key={lvl.level}
+              className="card-in flex items-center gap-4 p-4 rounded-xl"
+              style={{
+                background: isCurrent ? `${C.gold}14` : C.surface,
+                border: `1px solid ${isCurrent ? C.gold : C.border}`,
+                boxShadow: isCurrent ? `0 0 0 1px ${C.gold}33, 0 10px 26px -14px ${C.gold}88` : 'none',
+                animationDelay: `${idx * 60}ms`,
+              }}
+            >
+              <div
+                className={`flex items-center justify-center rounded-full text-sm font-semibold shrink-0 ${isCurrent ? 'crest-pulse' : ''}`}
+                style={{
+                  width: 40,
+                  height: 40,
+                  background: achieved ? `${C.gold}22` : C.border,
+                  color: achieved ? C.gold : C.mutedDim,
+                  border: `1px solid ${achieved ? C.gold : '#2E3541'}`,
+                  '--crest-color': C.gold,
+                }}
+              >
+                {achieved ? <CheckCircle2 size={18} className={isCurrent ? '' : 'check-pop'} /> : <Lock size={16} />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p style={{ color: achieved ? C.text : C.mutedDim }} className="text-sm font-medium truncate">
+                  Nivel {lvl.level} · {lvl.title}
+                </p>
+                <p style={{ color: C.mutedDim }} className="text-xs mt-1">
+                  {lvl.classesNeeded === 0 ? 'Punto de partida' : `${lvl.classesNeeded} clases completadas`}
+                </p>
+              </div>
+              {isCurrent && (
+                <span
+                  className="text-xs px-3 py-1 rounded-full shrink-0"
+                  style={{ background: `${C.gold}22`, color: C.gold, border: `1px solid ${C.gold}55` }}
+                >
+                  Estás aquí
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* --------------------------------- APP ----------------------------------- */
 
 export default function KingdomLevel() {
-  const [view, setView] = useState('home'); // 'home' | 'course' | 'topic' | 'class' | 'notesCourse' | 'notesTopic'
+  const [view, setView] = useState('home'); // 'home' | 'levels' | 'course' | 'topic' | 'class' | 'notesCourse' | 'notesTopic'
   const [courseId, setCourseId] = useState(null);
   const [topicId, setTopicId] = useState(null);
   const [classId, setClassId] = useState(null);
@@ -1417,9 +1592,9 @@ export default function KingdomLevel() {
   );
 
   const completedCount = Object.values(completedMap).filter(Boolean).length;
-  const { title: rankTitle, level, pct } = getRankInfo(completedCount);
+  const { title: rankTitle, level, pct, xp, xpForNext, classesForNext, isMaxLevel } = getLevelInfo(completedCount);
 
-  // Pequeña celebración cuando el estudiante sube de nivel (rango) al completar clases.
+  // Pequeña celebración cuando el estudiante sube de nivel al completar clases.
   const [levelUpToast, setLevelUpToast] = useState(null);
   const prevLevelRef = useRef(level);
   useEffect(() => {
@@ -1435,49 +1610,87 @@ export default function KingdomLevel() {
           color: colors[i % colors.length],
         };
       });
-      setLevelUpToast({ level, title: rankTitle, particles });
+      setLevelUpToast({ level, title: rankTitle, particles, isMaxLevel });
       const t = setTimeout(() => setLevelUpToast(null), 3600);
       prevLevelRef.current = level;
       return () => clearTimeout(t);
     }
     prevLevelRef.current = level;
     return undefined;
-  }, [level, rankTitle]);
+  }, [level, rankTitle, isMaxLevel]);
+
+  // --- Navegación conectada al historial del navegador -------------------
+  // Aplica un estado de navegación completo (los 6 campos) a los estados de React.
+  function applyNavState(next) {
+    setView(next.view || 'home');
+    setCourseId(next.courseId ?? null);
+    setTopicId(next.topicId ?? null);
+    setClassId(next.classId ?? null);
+    setNotesCourseId(next.notesCourseId ?? null);
+    setNotesTopicId(next.notesTopicId ?? null);
+  }
+
+  // Dirección de la transición de pantalla ('forward' | 'back'), para que al
+  // avanzar en la jerarquía la vista entre desde la derecha y al retroceder
+  // (incluido el botón atrás del navegador) entre desde la izquierda.
+  const [direction, setDirection] = useState('forward');
+  const viewRef = useRef(view);
+  useEffect(() => {
+    viewRef.current = view;
+  }, [view]);
+
+  // Navega hacia un nuevo estado Y agrega una entrada al historial del navegador,
+  // para que el botón "atrás" (físico, del navegador o del gesto en celular)
+  // pueda deshacer ese paso en vez de salir de la página.
+  function goTo(next) {
+    const currentDepth = VIEW_DEPTH[viewRef.current] ?? 0;
+    const nextDepth = VIEW_DEPTH[next.view] ?? 0;
+    setDirection(nextDepth >= currentDepth ? 'forward' : 'back');
+    applyNavState(next);
+    if (typeof window !== 'undefined' && window.history) {
+      window.history.pushState(next, '', hashForNav(next));
+    }
+  }
+
+  // Al montar: deja "inicio" como primera entrada del historial y escucha el
+  // botón atrás/adelante para sincronizar la vista con el historial real.
+  useEffect(() => {
+    const homeState = { view: 'home', courseId: null, topicId: null, classId: null, notesCourseId: null, notesTopicId: null };
+    if (typeof window !== 'undefined' && window.history) {
+      window.history.replaceState(homeState, '', '#inicio');
+    }
+    function handlePopState(event) {
+      const next = event.state || homeState;
+      const currentDepth = VIEW_DEPTH[viewRef.current] ?? 0;
+      const nextDepth = VIEW_DEPTH[next.view] ?? 0;
+      setDirection(nextDepth >= currentDepth ? 'forward' : 'back');
+      applyNavState(next);
+    }
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function goHome() {
-    setView('home');
-    setCourseId(null);
-    setTopicId(null);
-    setClassId(null);
-    setNotesCourseId(null);
-    setNotesTopicId(null);
+    goTo({ view: 'home', courseId: null, topicId: null, classId: null, notesCourseId: null, notesTopicId: null });
+  }
+  function openLevels() {
+    goTo({ view: 'levels', courseId: null, topicId: null, classId: null, notesCourseId: null, notesTopicId: null });
   }
   function openCourse(id) {
-    setCourseId(id);
-    setTopicId(null);
-    setClassId(null);
-    setView('course');
+    goTo({ view: 'course', courseId: id, topicId: null, classId: null, notesCourseId: null, notesTopicId: null });
   }
   function backToCourse() {
-    setTopicId(null);
-    setClassId(null);
-    setView('course');
+    goTo({ view: 'course', courseId, topicId: null, classId: null, notesCourseId: null, notesTopicId: null });
   }
   function openTopic(cId, tId) {
-    setCourseId(cId);
-    setTopicId(tId);
-    setClassId(null);
-    setView('topic');
+    goTo({ view: 'topic', courseId: cId, topicId: tId, classId: null, notesCourseId: null, notesTopicId: null });
   }
   function backToTopic() {
-    setClassId(null);
-    setView('topic');
+    goTo({ view: 'topic', courseId, topicId, classId: null, notesCourseId: null, notesTopicId: null });
   }
   function openClass(cId, tId, clId) {
-    setCourseId(cId);
-    setTopicId(tId);
-    setClassId(clId);
-    setView('class');
+    goTo({ view: 'class', courseId: cId, topicId: tId, classId: clId, notesCourseId: null, notesTopicId: null });
   }
   function toggleComplete(cId, tId, clId) {
     const key = `${cId}-${tId}-${clId}`;
@@ -1485,18 +1698,13 @@ export default function KingdomLevel() {
   }
 
   function openNotesCourse(cId) {
-    setNotesCourseId(cId);
-    setNotesTopicId(null);
-    setView('notesCourse');
+    goTo({ view: 'notesCourse', courseId: null, topicId: null, classId: null, notesCourseId: cId, notesTopicId: null });
   }
   function backToNotesCourse() {
-    setNotesTopicId(null);
-    setView('notesCourse');
+    goTo({ view: 'notesCourse', courseId: null, topicId: null, classId: null, notesCourseId, notesTopicId: null });
   }
   function openNotesTopic(cId, tId) {
-    setNotesCourseId(cId);
-    setNotesTopicId(tId);
-    setView('notesTopic');
+    goTo({ view: 'notesTopic', courseId: null, topicId: null, classId: null, notesCourseId: cId, notesTopicId: tId });
   }
 
   return (
@@ -1641,6 +1849,10 @@ export default function KingdomLevel() {
         .logo-btn .logo-crest { transition: transform 0.3s ease; }
         .logo-btn:hover .logo-crest { transform: rotate(-6deg) scale(1.06); }
 
+        .level-badge { transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+        .level-badge:hover { transform: translateY(-1px); border-color: ${C.gold} !important; box-shadow: 0 8px 20px -10px ${C.gold}66; }
+        .level-badge:active { transform: translateY(0) scale(0.98); }
+
         /* Pequeño rebote cuando algo se marca como completado */
         @keyframes checkPop {
           0% { transform: scale(0.4); opacity: 0; }
@@ -1670,6 +1882,38 @@ export default function KingdomLevel() {
           pointer-events: none;
         }
 
+        /* Transición direccional entre pantallas: avanzar entra desde la derecha,
+           retroceder (incluido el botón atrás del navegador) entra desde la izquierda. */
+        @keyframes slideInForward {
+          from { opacity: 0; transform: translateX(28px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInBack {
+          from { opacity: 0; transform: translateX(-28px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .nav-transition {
+          animation-duration: 0.4s;
+          animation-timing-function: cubic-bezier(.2,.8,.2,1);
+          animation-fill-mode: both;
+        }
+        .nav-forward { animation-name: slideInForward; }
+        .nav-back { animation-name: slideInBack; }
+
+        /* Pequeño destello alrededor del trofeo cada vez que se completa (o descompleta) una clase */
+        @keyframes xpPing {
+          0% { transform: scale(0.5); opacity: 0.8; }
+          100% { transform: scale(2.4); opacity: 0; }
+        }
+        .xp-ping {
+          position: absolute;
+          inset: -7px;
+          border-radius: 9999px;
+          background: radial-gradient(circle, ${C.gold} 0%, transparent 70%);
+          animation: xpPing 0.7s ease-out;
+          pointer-events: none;
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .animate-fadein,
           .card-in,
@@ -1678,7 +1922,8 @@ export default function KingdomLevel() {
           .intro-sub-in,
           .intro-video-in,
           .intro-stats-in,
-          .reveal {
+          .reveal,
+          .nav-transition {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
@@ -1692,7 +1937,8 @@ export default function KingdomLevel() {
           .video-glow-frame::before,
           .check-pop,
           .level-up-toast,
-          .level-up-particle {
+          .level-up-particle,
+          .xp-ping {
             animation: none !important;
           }
           html { scroll-behavior: auto; }
@@ -1700,45 +1946,61 @@ export default function KingdomLevel() {
         }
       `}</style>
 
-      <Header level={level} rankTitle={rankTitle} pct={pct} onHome={goHome} />
+      <Header
+        level={level}
+        rankTitle={rankTitle}
+        pct={pct}
+        onHome={goHome}
+        completedCount={completedCount}
+        classesForNext={classesForNext}
+        isMaxLevel={isMaxLevel}
+        onOpenLevels={openLevels}
+      />
 
-      {view === 'home' && (
-        <HomeView completedMap={completedMap} onOpenCourse={openCourse} onOpenNotesCourse={openNotesCourse} />
-      )}
+      <div
+        key={`${view}-${courseId || ''}-${topicId || ''}-${classId || ''}-${notesCourseId || ''}-${notesTopicId || ''}`}
+        className={`nav-transition nav-${direction}`}
+      >
+        {view === 'home' && (
+          <HomeView completedMap={completedMap} onOpenCourse={openCourse} onOpenNotesCourse={openNotesCourse} />
+        )}
 
-      {view === 'course' && activeCourse && (
-        <CourseView course={activeCourse} completedMap={completedMap} onBack={goHome} onOpenTopic={openTopic} />
-      )}
+        {view === 'levels' && <LevelsView completedCount={completedCount} onBack={goHome} />}
 
-      {view === 'topic' && activeCourse && activeTopic && (
-        <TopicView
-          course={activeCourse}
-          topic={activeTopic}
-          completedMap={completedMap}
-          onBack={backToCourse}
-          onOpenClass={openClass}
-        />
-      )}
+        {view === 'course' && activeCourse && (
+          <CourseView course={activeCourse} completedMap={completedMap} onBack={goHome} onOpenTopic={openTopic} />
+        )}
 
-      {view === 'class' && activeCourse && activeTopic && activeClass && (
-        <ClassView
-          course={activeCourse}
-          topic={activeTopic}
-          activeClass={activeClass}
-          completedMap={completedMap}
-          onBack={backToTopic}
-          onOpenClass={openClass}
-          onToggleComplete={toggleComplete}
-        />
-      )}
+        {view === 'topic' && activeCourse && activeTopic && (
+          <TopicView
+            course={activeCourse}
+            topic={activeTopic}
+            completedMap={completedMap}
+            onBack={backToCourse}
+            onOpenClass={openClass}
+          />
+        )}
 
-      {view === 'notesCourse' && activeNotesCourse && (
-        <NotesCourseView course={activeNotesCourse} onBack={goHome} onOpenTopic={openNotesTopic} />
-      )}
+        {view === 'class' && activeCourse && activeTopic && activeClass && (
+          <ClassView
+            course={activeCourse}
+            topic={activeTopic}
+            activeClass={activeClass}
+            completedMap={completedMap}
+            onBack={backToTopic}
+            onOpenClass={openClass}
+            onToggleComplete={toggleComplete}
+          />
+        )}
 
-      {view === 'notesTopic' && activeNotesCourse && activeNotesTopic && (
-        <NotesTopicView course={activeNotesCourse} topic={activeNotesTopic} onBack={backToNotesCourse} />
-      )}
+        {view === 'notesCourse' && activeNotesCourse && (
+          <NotesCourseView course={activeNotesCourse} onBack={goHome} onOpenTopic={openNotesTopic} />
+        )}
+
+        {view === 'notesTopic' && activeNotesCourse && activeNotesTopic && (
+          <NotesTopicView course={activeNotesCourse} topic={activeNotesTopic} onBack={backToNotesCourse} />
+        )}
+      </div>
 
       {levelUpToast && (
         <div className="level-up-toast" style={{ position: 'fixed', bottom: 24, left: '50%', zIndex: 50 }}>
@@ -1752,7 +2014,9 @@ export default function KingdomLevel() {
             ))}
             <Trophy size={18} color={C.gold} className="icon-twinkle" />
             <div className="text-left leading-tight">
-              <p style={{ color: C.text }} className="text-xs font-semibold">¡Subiste de nivel!</p>
+              <p style={{ color: C.text }} className="text-xs font-semibold">
+                {levelUpToast.isMaxLevel ? '¡Nivel máximo alcanzado!' : '¡Subiste de nivel!'}
+              </p>
               <p style={{ color: C.gold }} className="text-xs">Nivel {levelUpToast.level} · {levelUpToast.title}</p>
             </div>
           </div>
