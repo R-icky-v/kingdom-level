@@ -72,6 +72,13 @@ import {
   Handshake,
   UploadCloud,
   Lock,
+  Flame,
+  Rocket,
+  Layers,
+  Award,
+  Compass,
+  TrendingUp,
+  Landmark,
 } from 'lucide-react';
 
 /* ------------------------------- TOKENS -------------------------------- */
@@ -119,6 +126,173 @@ const APPLY_TEACH_LINK = 'https://forms.gle/TU-FORMULARIO-PARA-DAR-CLASES-AQUI';
 const APPLY_CONTRIBUTE_LINK = 'https://forms.gle/TU-FORMULARIO-PARA-APORTAR-APUNTES-AQUI';
 
 const courseData = [
+  {
+    id: 'sistemaseconomicos',
+    title: 'Sistemas Económicos',
+    tagline: 'Las leyes invisibles que mueven el oro del reino',
+    description:
+      'Entiende cómo funcionan los mercados, cuánto vale el dinero a lo largo del tiempo y cómo evaluar si un proyecto de inversión realmente conviene.',
+    color: '#3FA396',
+    icon: Landmark,
+    instructor: 'Tu nombre aquí',
+    seal: 'Materia de universidad', // sello fijo del curso, se ve directo en su tarjeta
+    topics: [
+      {
+        id: 1,
+        title: 'Mercados, funciones y equilibrio',
+        description: 'Cómo se comportan los mercados: quién compra, quién vende, y en qué punto se ponen de acuerdo.',
+        classes: [
+          { id: 1, title: 'Introducción a los mercados, la oferta y la demanda', duration: '14:20', description: 'Qué es un mercado y cómo se representan la oferta y la demanda con funciones.', videoId: DEMO_VIDEO_ID },
+          { id: 2, title: 'Funciones de oferta y demanda', duration: '15:40', description: 'Cómo construir e interpretar las ecuaciones que describen el comportamiento de compradores y vendedores.', videoId: DEMO_VIDEO_ID },
+          { id: 3, title: 'Equilibrio de mercado', duration: '13:15', description: 'Cómo encontrar el punto donde la oferta y la demanda se cruzan, y qué significa económicamente.', videoId: DEMO_VIDEO_ID },
+        ],
+        notes: {
+          summary: 'Antes de hablar de dinero o inversiones, hay que entender cómo se comportan los mercados: quién compra, quién vende, y en qué punto se ponen de acuerdo.',
+          keyPoints: [
+            'Cómo graficar e interpretar curvas de oferta y demanda.',
+            'Ejercicios resueltos de funciones de oferta y demanda.',
+            'Cómo calcular el punto de equilibrio de mercado paso a paso.',
+            'Glosario de términos básicos de microeconomía.',
+          ],
+          notesLink: NOTES_LINK_PLACEHOLDER,
+        },
+      },
+      {
+        id: 2,
+        title: 'Las medidas de elasticidad',
+        description: 'Qué tan sensible es el mercado a los cambios de precio, y por qué eso importa para tomar decisiones.',
+        classes: [
+          { id: 1, title: 'Elasticidad precio de la demanda', duration: '15:00', description: 'Qué tan sensible es la cantidad demandada ante cambios en el precio, y cómo calcularla.', videoId: DEMO_VIDEO_ID },
+          { id: 2, title: 'Elasticidad de la oferta y elasticidad cruzada', duration: '14:10', description: 'Otras medidas de elasticidad y qué nos dicen sobre bienes sustitutos y complementarios.', videoId: DEMO_VIDEO_ID },
+        ],
+        notes: {
+          summary: 'La elasticidad te dice qué tan sensible es el mercado a los cambios de precio, y es una de las herramientas más usadas para tomar decisiones económicas.',
+          keyPoints: [
+            'Fórmulas de elasticidad precio, cruzada y de la oferta.',
+            'Ejemplos de bienes elásticos e inelásticos de la vida real.',
+            'Ejercicios resueltos de cálculo de elasticidad.',
+            'Tabla resumen de cómo interpretar cada resultado.',
+          ],
+          notesLink: NOTES_LINK_PLACEHOLDER,
+        },
+      },
+      {
+        id: 3,
+        title: 'Teoría de la demanda del consumidor',
+        description: 'Por qué los consumidores eligen lo que eligen, explicado con curvas de indiferencia y presupuesto.',
+        classes: [
+          { id: 1, title: 'Utilidad y preferencias del consumidor', duration: '16:05', description: 'Cómo los consumidores deciden qué comprar según sus preferencias y su presupuesto.', videoId: DEMO_VIDEO_ID },
+          { id: 2, title: 'Curvas de indiferencia y restricción presupuestaria', duration: '15:30', description: 'Cómo se combinan las preferencias y el ingreso disponible para explicar las decisiones de consumo.', videoId: DEMO_VIDEO_ID },
+        ],
+        notes: {
+          summary: 'Por qué los consumidores eligen lo que eligen: las curvas de indiferencia y la restricción presupuestaria explican matemáticamente cómo se toman esas decisiones.',
+          keyPoints: [
+            'Cómo construir curvas de indiferencia.',
+            'La restricción presupuestaria explicada con ejemplos numéricos.',
+            'Ejercicios de maximización de utilidad.',
+            'Errores comunes al interpretar las preferencias del consumidor.',
+          ],
+          notesLink: NOTES_LINK_PLACEHOLDER,
+        },
+      },
+      {
+        id: 4,
+        title: 'Valor del dinero en el tiempo',
+        description: 'La base de toda la ingeniería económica: por qué un monto de dinero no vale igual hoy que en el futuro.',
+        classes: [
+          { id: 1, title: 'El concepto de valor del dinero en el tiempo', duration: '13:45', description: 'Por qué un monto de dinero hoy no vale lo mismo que ese mismo monto en el futuro.', videoId: DEMO_VIDEO_ID },
+          { id: 2, title: 'Interés simple y compuesto', duration: '16:20', description: 'Las dos formas básicas de calcular cómo crece el dinero a lo largo del tiempo.', videoId: DEMO_VIDEO_ID },
+        ],
+        notes: {
+          summary: 'La base de toda la ingeniería económica: un mismo monto de dinero no vale igual hoy que en el futuro, y aquí verás por qué y cómo calcularlo.',
+          keyPoints: [
+            'Diferencia entre interés simple y compuesto, con ejemplos.',
+            'Línea de tiempo de flujos de efectivo explicada paso a paso.',
+            'Ejercicios resueltos de cálculo de interés.',
+            'Fórmulas clave listas para consulta rápida.',
+          ],
+          notesLink: NOTES_LINK_PLACEHOLDER,
+        },
+      },
+      {
+        id: 5,
+        title: 'Tasa de interés nominal y efectiva y capitalización continua',
+        description: 'No todas las tasas de interés significan lo mismo: cómo distinguir la que se anuncia de la que realmente se paga.',
+        classes: [
+          { id: 1, title: 'Tasa nominal vs. tasa efectiva', duration: '14:50', description: 'La diferencia entre la tasa que se anuncia y la que realmente se paga o se gana.', videoId: DEMO_VIDEO_ID },
+          { id: 2, title: 'Capitalización continua', duration: '13:30', description: 'Qué pasa cuando el interés se capitaliza de forma continua, y cómo calcularlo.', videoId: DEMO_VIDEO_ID },
+        ],
+        notes: {
+          summary: 'No todas las tasas de interés significan lo mismo: aquí aprenderás a distinguir la tasa que se anuncia de la que realmente se paga o se gana.',
+          keyPoints: [
+            'Cómo convertir una tasa nominal en efectiva.',
+            'Ejercicios resueltos con distintos periodos de capitalización.',
+            'Qué es la capitalización continua y cuándo se usa.',
+            'Tabla comparativa de tasas nominales vs. efectivas.',
+          ],
+          notesLink: NOTES_LINK_PLACEHOLDER,
+        },
+      },
+      {
+        id: 6,
+        title: 'Comparación del valor presente, futuro y anual equivalente',
+        description: 'Tres formas distintas de mirar el mismo dinero, y cómo pasar de una a otra para comparar proyectos.',
+        classes: [
+          { id: 1, title: 'Valor presente', duration: '15:10', description: 'Cómo traer flujos de dinero futuros al presente para poder compararlos.', videoId: DEMO_VIDEO_ID },
+          { id: 2, title: 'Valor futuro', duration: '13:55', description: 'Cómo proyectar el valor de un monto de dinero hacia el futuro.', videoId: DEMO_VIDEO_ID },
+          { id: 3, title: 'Valor anual equivalente', duration: '14:40', description: 'Cómo convertir flujos de dinero irregulares en una serie uniforme anual.', videoId: DEMO_VIDEO_ID },
+        ],
+        notes: {
+          summary: 'Tres formas distintas de mirar el mismo dinero: aquí verás cómo pasar de una a otra para poder comparar proyectos de inversión de forma justa.',
+          keyPoints: [
+            'Fórmulas de valor presente, futuro y anual equivalente.',
+            'Ejercicios resueltos convirtiendo entre los tres.',
+            'Cuándo conviene usar cada método según el problema.',
+            'Ejemplos aplicados a decisiones de inversión reales.',
+          ],
+          notesLink: NOTES_LINK_PLACEHOLDER,
+        },
+      },
+      {
+        id: 7,
+        title: 'Amortización de deudas',
+        description: 'Cómo se paga realmente una deuda a lo largo del tiempo, cuota por cuota.',
+        classes: [
+          { id: 1, title: 'Tablas de amortización', duration: '16:00', description: 'Cómo se construye una tabla de amortización y qué información muestra.', videoId: DEMO_VIDEO_ID },
+          { id: 2, title: 'Métodos de amortización de deudas', duration: '15:20', description: 'Distintas formas de pagar una deuda a lo largo del tiempo y sus diferencias.', videoId: DEMO_VIDEO_ID },
+        ],
+        notes: {
+          summary: 'Cómo se paga realmente una deuda a lo largo del tiempo: qué parte de cada cuota es interés y qué parte es capital, y cómo armar tu propia tabla de amortización.',
+          keyPoints: [
+            'Cómo construir una tabla de amortización desde cero.',
+            'Comparación entre distintos métodos de amortización.',
+            'Ejercicios resueltos de cálculo de cuotas.',
+            'Plantilla de tabla de amortización lista para usar.',
+          ],
+          notesLink: NOTES_LINK_PLACEHOLDER,
+        },
+      },
+      {
+        id: 8,
+        title: 'Métodos determinísticos en análisis de inversiones',
+        description: 'Cómo decidir, con información conocida con certeza, si un proyecto de inversión conviene.',
+        classes: [
+          { id: 1, title: 'Introducción al análisis de inversiones', duration: '14:15', description: 'Cómo evaluar si un proyecto de inversión conviene o no, con información conocida con certeza.', videoId: DEMO_VIDEO_ID },
+          { id: 2, title: 'Criterios de decisión: VAN y TIR', duration: '17:00', description: 'Los indicadores más usados para decidir si conviene invertir en un proyecto.', videoId: DEMO_VIDEO_ID },
+        ],
+        notes: {
+          summary: 'El cierre del curso: cómo usar todo lo anterior para decidir, con información conocida con certeza, si un proyecto de inversión realmente conviene.',
+          keyPoints: [
+            'Cómo calcular el Valor Actual Neto (VAN) paso a paso.',
+            'Cómo calcular la Tasa Interna de Retorno (TIR).',
+            'Ejercicios resueltos de evaluación de proyectos.',
+            'Criterios para decidir entre varios proyectos de inversión.',
+          ],
+          notesLink: NOTES_LINK_PLACEHOLDER,
+        },
+      },
+    ],
+  },
   {
     id: 'fundamentos',
     title: 'Fundamentos de Programación',
@@ -448,19 +622,95 @@ const LEVEL_TITLES = [
   'Archimago del Código',
   'Leyenda de Kingdom Level',
 ];
-const LEVEL_FRACTIONS = [0, 0.04, 0.08, 0.15, 0.22, 0.33, 0.44, 0.56, 0.7, 0.85, 1];
+// Cuántas clases (videos) pide CADA nivel, contando desde cero — el "gap" que
+// se reinicia cada vez que subes de nivel. El índice 0 (Nivel 1) no aplica,
+// es el punto de partida. El índice 1 es el Nivel 2 y así sucesivamente.
+// Con las 27 clases que existen hoy en el sitio se puede llegar hasta media
+// tabla; los niveles más altos quedan como meta a futuro, para cuando
+// agregues más cursos y clases.
+const LEVEL_GAPS = [0, 2, 4, 8, 10, 15, 20, 25, 30, 35, 40];
 
 const LEVELS = LEVEL_TITLES.map((title, i) => ({
   level: i + 1,
   title,
-  classesNeeded: Math.round(LEVEL_FRACTIONS[i] * TOTAL_CLASSES),
-})).map((lvl, i, arr) => {
-  // Garantiza que cada nivel pida al menos una clase más que el anterior.
-  if (i > 0 && lvl.classesNeeded <= arr[i - 1].classesNeeded) {
-    lvl.classesNeeded = Math.min(TOTAL_CLASSES, arr[i - 1].classesNeeded + 1);
-  }
-  return lvl;
-});
+  gap: LEVEL_GAPS[i] || 0,
+  classesNeeded: LEVEL_GAPS.slice(0, i + 1).reduce((a, b) => a + b, 0),
+}));
+
+/* ---------------------------- DISEÑO POR NIVEL ---------------------------- */
+/* Sistema de "looks" por nivel: a medida que el estudiante sube, el escudo que
+   lo representa (en el header y en el escalafón) puede lucir cada vez más
+   trabajado, hasta un diseño mágico y único en el nivel máximo (Leyenda de
+   Kingdom Level). Por ahora solo está definido el Nivel 1 (el diseño base,
+   sobrio, tal como se ve hoy) — los niveles 2 al 11 se irán agregando de a
+   uno en los siguientes pasos, cada uno mejorando sobre el anterior.
+   getLevelVisual() es el único lugar que hay que tocar para eso: cuando se
+   agregue la entrada del nivel 2, 3, etc. a LEVEL_VISUALS, el header y el
+   escalafón la van a usar automáticamente sin tocar nada más. */
+const LEVEL_VISUALS = {
+  1: {
+    tier: 'base',
+    label: 'Diseño base',
+    crestColor: C.gold,
+    ringEffect: false, // sin anillo mágico alrededor del escudo todavía
+    extraGlow: false, // sin brillo extra todavía
+    barShimmer: false, // barra de XP lisa, sin brillo
+    unlockMessage: null,
+  },
+  2: {
+    tier: 'apprentice',
+    label: 'Primer brillo mágico',
+    crestColor: C.goldBright,
+    ringEffect: true, // primer anillo mágico girando alrededor del escudo
+    extraGlow: true, // resplandor propio detrás del escudo
+    barShimmer: true, // la barra de XP ahora tiene un brillo que la recorre
+    sparkles: false,
+    unlockMessage: 'Tu insignia empezó a brillar con un halo mágico.',
+  },
+  3: {
+    tier: 'squire',
+    label: 'Constelación del escudero',
+    crestColor: '#F6E2AE', // dorado aún más luminoso, casi blanco-dorado
+    ringEffect: true,
+    extraGlow: true,
+    barShimmer: true,
+    sparkles: true, // NUEVO: chispas mágicas orbitando el escudo
+    unlockMessage: 'Pequeñas chispas de magia empezaron a orbitar tu escudo.',
+  },
+  4: {
+    tier: 'page',
+    label: 'Insignia de la corte',
+    crestColor: '#F8E9C2', // dorado casi blanco, la base del escudo
+    accentColor: '#B98CE0', // NUEVO: degradado a violeta cortesano
+    ringEffect: true,
+    doubleRing: true, // NUEVO: segundo anillo girando en sentido contrario
+    secondaryColor: '#B98CE0',
+    extraGlow: true,
+    barShimmer: true,
+    sparkles: true,
+    shine: true, // NUEVO: barrido de brillo cruzando el escudo
+    unlockMessage: 'Tu escudo fue admitido en la corte: ahora luce dos anillos y un brillo violeta.',
+  },
+  5: {
+    tier: 'novice-knight',
+    label: 'Guardia de acero',
+    crestColor: '#F8E9C2', // el mismo dorado casi blanco del nivel 4
+    accentColor: '#7FA8D9', // NUEVO: el violeta cortesano da paso al acero del caballero
+    ringEffect: true,
+    doubleRing: true,
+    secondaryColor: '#7FA8D9',
+    extraGlow: true,
+    barShimmer: true,
+    sparkles: true,
+    shine: true,
+    rim: true, // NUEVO: remache de escudo con 8 destellos alrededor, como un caballero de verdad
+    unlockMessage: 'Un remache de acero rodea tu escudo: ya eres un caballero novicio.',
+  },
+};
+
+function getLevelVisual(level) {
+  return LEVEL_VISUALS[level] || LEVEL_VISUALS[1];
+}
 
 function getLevelInfo(completedCount) {
   let current = LEVELS[0];
@@ -472,9 +722,12 @@ function getLevelInfo(completedCount) {
     }
   }
   const next = LEVELS[idx + 1] || null;
-  const pct = next
-    ? Math.min(100, Math.round(((completedCount - current.classesNeeded) / (next.classesNeeded - current.classesNeeded)) * 100))
-    : 100;
+  // Contador del nivel actual: cuántas clases llevas de este nivel (arranca en 0
+  // apenas subes) y cuántas pide el siguiente nivel en total. No es acumulado
+  // desde el inicio del reino, sino desde la última vez que subiste de nivel.
+  const classesDoneInLevel = completedCount - current.classesNeeded;
+  const classesNeededInLevel = next ? next.classesNeeded - current.classesNeeded : 0;
+  const pct = next ? Math.min(100, Math.round((classesDoneInLevel / classesNeededInLevel) * 100)) : 100;
   return {
     level: current.level,
     title: current.title,
@@ -482,9 +735,156 @@ function getLevelInfo(completedCount) {
     xp: completedCount * XP_PER_CLASS,
     xpForNext: next ? next.classesNeeded * XP_PER_CLASS : current.classesNeeded * XP_PER_CLASS,
     classesForNext: next ? next.classesNeeded - completedCount : 0,
+    classesDoneInLevel,
+    classesNeededInLevel,
     isMaxLevel: !next,
   };
 }
+
+/* -------------------------------- RACHA ----------------------------------- */
+/* Racha de días de estudio, al estilo Duolingo: se cuenta un día como "activo"
+   la primera vez que el estudiante marca una clase como completada ese día.
+   Si al día siguiente vuelve a estudiar, la racha sube; si deja pasar más de
+   un día sin actividad, se rompe y vuelve a empezar en 1. */
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function daysBetween(dateStrA, dateStrB) {
+  const a = new Date(`${dateStrA}T00:00:00`);
+  const b = new Date(`${dateStrB}T00:00:00`);
+  return Math.round((b - a) / 86400000);
+}
+
+// Calcula la racha "efectiva" a mostrar: si pasaron 2 días o más desde la
+// última actividad, la racha ya está rota aunque el número guardado todavía
+// diga otra cosa (porque no hubo actividad nueva que la recalculara).
+function getEffectiveStreak(streak) {
+  if (!streak || !streak.lastActiveDate) return 0;
+  const diff = daysBetween(streak.lastActiveDate, todayStr());
+  return diff <= 1 ? streak.currentStreak : 0;
+}
+
+function isActiveToday(streak) {
+  return !!streak && streak.lastActiveDate === todayStr();
+}
+
+/* ------------------------------ INSIGNIAS ---------------------------------- */
+/* Insignias extra, aparte del nivel: celebran logros puntuales (el primer
+   tema, el primer curso, una racha larga, etc.) en vez de solo el progreso
+   acumulado. Una vez desbloqueada, una insignia queda guardada para siempre,
+   aunque después el estudiante desmarque alguna clase. */
+
+function computeBadgeContext(completedMap, streak) {
+  const completedCount = Object.values(completedMap).filter(Boolean).length;
+  let anyTopicComplete = false;
+  let anyCourseComplete = false;
+  let coursesTouched = 0;
+  const courseCompletionMap = {};
+
+  courseData.forEach((course) => {
+    let courseDone = 0;
+    let courseTotal = 0;
+    let touched = false;
+    course.topics.forEach((topic) => {
+      let topicDone = 0;
+      topic.classes.forEach((cl) => {
+        courseTotal += 1;
+        const done = !!completedMap[`${course.id}-${topic.id}-${cl.id}`];
+        if (done) {
+          courseDone += 1;
+          topicDone += 1;
+          touched = true;
+        }
+      });
+      if (topic.classes.length > 0 && topicDone === topic.classes.length) anyTopicComplete = true;
+    });
+    if (touched) coursesTouched += 1;
+    const courseFullyDone = courseTotal > 0 && courseDone === courseTotal;
+    courseCompletionMap[course.id] = courseFullyDone;
+    if (courseFullyDone) anyCourseComplete = true;
+  });
+
+  return {
+    completedCount,
+    overallPct: TOTAL_CLASSES ? Math.round((completedCount / TOTAL_CLASSES) * 100) : 0,
+    anyTopicComplete,
+    anyCourseComplete,
+    coursesTouched,
+    courseCompletionMap,
+    longestStreak: (streak && streak.longestStreak) || 0,
+  };
+}
+
+const BADGES = [
+  {
+    id: 'first-class',
+    title: 'Primeros pasos',
+    description: 'Completaste tu primera clase.',
+    icon: Rocket,
+    color: C.gold,
+    check: (ctx) => ctx.completedCount >= 1,
+  },
+  {
+    id: 'first-topic',
+    title: 'Tema dominado',
+    description: 'Terminaste todas las clases de un tema.',
+    icon: Layers,
+    color: '#5B8DBF',
+    check: (ctx) => ctx.anyTopicComplete,
+  },
+  {
+    id: 'first-course',
+    title: 'Curso conquistado',
+    description: 'Terminaste un curso completo.',
+    icon: Award,
+    color: C.emerald,
+    check: (ctx) => ctx.anyCourseComplete,
+  },
+  {
+    id: 'explorer',
+    title: 'Explorador del reino',
+    description: `Diste al menos una clase en cada uno de los ${courseData.length} cursos.`,
+    icon: Compass,
+    color: C.amethyst,
+    check: (ctx) => ctx.coursesTouched >= courseData.length,
+  },
+  {
+    id: 'streak-3',
+    title: 'Racha de 3 días',
+    description: 'Estudiaste 3 días seguidos.',
+    icon: Flame,
+    color: '#E08D4B',
+    check: (ctx) => ctx.longestStreak >= 3,
+  },
+  {
+    id: 'streak-7',
+    title: 'Racha de 7 días',
+    description: 'Estudiaste 7 días seguidos.',
+    icon: Flame,
+    color: '#FF6B4A',
+    check: (ctx) => ctx.longestStreak >= 7,
+  },
+  {
+    id: 'halfway',
+    title: 'Mitad del camino',
+    description: 'Completaste la mitad de las clases del sitio.',
+    icon: TrendingUp,
+    color: '#B5495B',
+    check: (ctx) => ctx.overallPct >= 50,
+  },
+  {
+    id: 'all-kingdom',
+    title: 'Todo el reino',
+    description: 'Completaste el 100% de las clases del sitio.',
+    icon: Crown,
+    color: C.gold,
+    check: (ctx) => ctx.overallPct >= 100,
+  },
+];
+
 
 /* ------------------------------ AYUDANTES -------------------------------- */
 
@@ -572,20 +972,71 @@ function Reveal({ children, delay = 0, className = '' }) {
   );
 }
 
-function Crest({ color, Icon, size = 56, pulse = false, className = '' }) {
+const SPARKLE_POSITIONS = [
+  { top: '-6%', right: '2%', delay: '0s' },
+  { bottom: '4%', left: '-8%', delay: '0.5s' },
+  { top: '38%', right: '-10%', delay: '1s' },
+];
+
+const RIM_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315];
+
+function Crest({
+  color,
+  Icon,
+  size = 56,
+  pulse = false,
+  ring = false,
+  glow = false,
+  sparkles = false,
+  doubleRing = false,
+  secondaryColor = null,
+  accentColor = null,
+  shine = false,
+  rim = false,
+  className = '',
+}) {
   return (
-    <div
-      className={`flex items-center justify-center shrink-0 crest ${pulse ? 'crest-pulse' : ''} ${className}`}
-      style={{
-        width: size,
-        height: size * 1.12,
-        background: `linear-gradient(150deg, ${color} 0%, ${darken(color, 0.4)} 100%)`,
-        clipPath: 'polygon(50% 0%, 100% 18%, 100% 60%, 50% 100%, 0% 60%, 0% 18%)',
-        boxShadow: `0 6px 16px ${color}40`,
-        '--crest-color': color,
-      }}
-    >
-      <Icon size={Math.round(size * 0.42)} color="#0A0C10" strokeWidth={2.3} />
+    <div className="relative shrink-0" style={{ width: size, height: size * 1.12 }}>
+      {glow && <span className="level-extra-glow" style={{ '--glow-color-lvl': color }} />}
+      {ring && <span className="level-ring-effect" style={{ '--ring-color-lvl': color }} />}
+      {doubleRing && <span className="level-ring-effect-secondary" style={{ '--ring2-color-lvl': secondaryColor || color }} />}
+      {sparkles &&
+        SPARKLE_POSITIONS.map((p, i) => (
+          <span
+            key={i}
+            className="level-sparkle-dot"
+            style={{ top: p.top, bottom: p.bottom, left: p.left, right: p.right, animationDelay: p.delay, '--sparkle-color-lvl': color }}
+          />
+        ))}
+      {rim &&
+        RIM_ANGLES.map((angle, i) => (
+          <span
+            key={angle}
+            className="level-rim-stud"
+            style={{
+              transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(-${Math.round(size * 0.62)}px)`,
+              animationDelay: `${i * 0.15}s`,
+              '--rim-color-lvl': secondaryColor || color,
+            }}
+          />
+        ))}
+      <div
+        className={`relative flex items-center justify-center crest ${pulse ? 'crest-pulse' : ''} ${className}`}
+        style={{
+          width: size,
+          height: size * 1.12,
+          zIndex: 1,
+          background: accentColor
+            ? `linear-gradient(150deg, ${color} 0%, ${accentColor} 100%)`
+            : `linear-gradient(150deg, ${color} 0%, ${darken(color, 0.4)} 100%)`,
+          clipPath: 'polygon(50% 0%, 100% 18%, 100% 60%, 50% 100%, 0% 60%, 0% 18%)',
+          boxShadow: `0 6px 16px ${color}40`,
+          '--crest-color': color,
+        }}
+      >
+        <Icon size={Math.round(size * 0.42)} color="#0A0C10" strokeWidth={2.3} />
+        {shine && <span className="crest-shine" />}
+      </div>
     </div>
   );
 }
@@ -607,7 +1058,41 @@ function MiniBar({ done, total, color }) {
   );
 }
 
-function Header({ level, rankTitle, pct, onHome, completedCount = 0, classesForNext = 0, isMaxLevel = false, onOpenLevels }) {
+function BadgeMedallion({ badge, unlocked, index = 0 }) {
+  const Icon = badge.icon;
+  return (
+    <div
+      className="card-in flex flex-col items-center text-center gap-2 p-4 rounded-xl"
+      style={{
+        background: C.surface,
+        border: `1px solid ${unlocked ? badge.color : C.border}`,
+        opacity: unlocked ? 1 : 0.5,
+        animationDelay: `${index * 60}ms`,
+      }}
+    >
+      <div
+        className={`flex items-center justify-center rounded-full ${unlocked ? 'crest-pulse' : ''}`}
+        style={{
+          width: 48,
+          height: 48,
+          background: unlocked ? `${badge.color}22` : C.border,
+          border: `1px solid ${unlocked ? badge.color : '#2E3541'}`,
+          '--crest-color': badge.color,
+        }}
+      >
+        {unlocked ? <Icon size={22} color={badge.color} /> : <Lock size={18} color={C.mutedDim} />}
+      </div>
+      <p className="text-xs font-medium" style={{ color: unlocked ? C.text : C.mutedDim }}>{badge.title}</p>
+      <p className="text-xs leading-snug" style={{ color: C.mutedDim }}>{badge.description}</p>
+    </div>
+  );
+}
+
+function Header({ level, rankTitle, pct, onHome, completedCount = 0, classesDoneInLevel = 0, classesNeededInLevel = 0, isMaxLevel = false, onOpenLevels, progressLoaded = true, streak = null }) {
+  const visual = getLevelVisual(level);
+  const effectiveStreak = progressLoaded ? getEffectiveStreak(streak) : 0;
+  const activeToday = progressLoaded && isActiveToday(streak);
+  const streakColor = effectiveStreak > 0 ? (activeToday ? '#FF6B4A' : '#E08D4B') : C.mutedDim;
   return (
     <header
       className="sticky top-0 z-20 flex items-center justify-between gap-4 px-6 md:px-10 py-4 flex-wrap"
@@ -629,30 +1114,55 @@ function Header({ level, rankTitle, pct, onHome, completedCount = 0, classesForN
         </div>
       </button>
 
-      <button
-        onClick={onOpenLevels}
-        className="level-badge flex items-center gap-3 rounded-full px-4 py-2"
-        style={{ background: C.surface, border: `1px solid ${C.border}`, cursor: 'pointer' }}
-      >
-        <div key={completedCount} className="relative flex items-center justify-center">
-          <span className="xp-ping" />
-          <Trophy size={16} color={C.gold} style={{ position: 'relative', zIndex: 1 }} />
-        </div>
-        <div className="flex flex-col items-start" style={{ minWidth: 130 }}>
-          <span className="text-xs font-semibold" style={{ color: C.text }}>
-            Nv. {level} · {rankTitle}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div
+          className="flex items-center gap-2 rounded-full px-3 py-2"
+          style={{ background: C.surface, border: `1px solid ${C.border}` }}
+          title={
+            !progressLoaded
+              ? 'Cargando racha…'
+              : effectiveStreak > 0
+              ? activeToday
+                ? `Ya estudiaste hoy · racha de ${effectiveStreak} ${effectiveStreak === 1 ? 'día' : 'días'}`
+                : `Estudia hoy para no perder tu racha de ${effectiveStreak} ${effectiveStreak === 1 ? 'día' : 'días'}`
+              : 'Completa una clase para empezar tu racha'
+          }
+        >
+          <Flame size={16} color={streakColor} className={activeToday ? 'flame-flicker' : ''} />
+          <span className="text-xs font-semibold" style={{ color: effectiveStreak > 0 ? C.text : C.mutedDim }}>
+            {progressLoaded ? effectiveStreak : '–'}
           </span>
-          <div className="w-full rounded-full mt-1" style={{ height: 4, background: C.border }}>
-            <div
-              className="rounded-full"
-              style={{ height: 4, width: `${pct}%`, background: `linear-gradient(90deg, ${C.gold}, ${C.goldBright})`, transition: 'width 0.4s ease' }}
-            />
+        </div>
+
+        <button
+          onClick={onOpenLevels}
+          className="level-badge flex items-center gap-3 rounded-full px-4 py-2"
+          style={{ background: C.surface, border: `1px solid ${C.border}`, cursor: 'pointer' }}
+        >
+          <div key={completedCount} className="relative flex items-center justify-center" style={{ '--ping-color': visual.crestColor }}>
+            <span className="xp-ping" />
+            {visual.extraGlow && <span className="level-extra-glow" style={{ '--glow-color-lvl': visual.crestColor }} />}
+            {visual.ringEffect && <span className="level-ring-effect" style={{ '--ring-color-lvl': visual.crestColor }} />}
+            <Trophy size={16} color={visual.crestColor} style={{ position: 'relative', zIndex: 1 }} />
           </div>
-          <span className="mt-1" style={{ color: C.mutedDim, fontSize: '10px' }}>
-            {isMaxLevel ? 'Nivel máximo alcanzado' : `${classesForNext} ${classesForNext === 1 ? 'clase' : 'clases'} para subir`}
-          </span>
-        </div>
-      </button>
+          <div className="flex flex-col items-start" style={{ minWidth: 130 }}>
+            <span className="text-xs font-semibold" style={{ color: C.text }}>
+              {progressLoaded ? `Nv. ${level} · ${rankTitle}` : 'Cargando progreso…'}
+            </span>
+            <div className="w-full rounded-full mt-1" style={{ height: 4, background: C.border, position: 'relative', overflow: 'hidden' }}>
+              <div
+                className="rounded-full"
+                style={{ height: 4, width: progressLoaded ? `${pct}%` : '100%', opacity: progressLoaded ? 1 : 0.35, background: `linear-gradient(90deg, ${visual.crestColor}, ${C.goldBright})`, transition: 'width 0.4s ease', position: 'relative', overflow: 'hidden' }}
+              >
+                {progressLoaded && visual.barShimmer && <span className="bar-shimmer" />}
+              </div>
+            </div>
+            <span className="mt-1" style={{ color: C.mutedDim, fontSize: '10px' }}>
+              {!progressLoaded ? '\u00A0' : isMaxLevel ? 'Nivel máximo alcanzado' : `${classesDoneInLevel}/${classesNeededInLevel} clases de este nivel`}
+            </span>
+          </div>
+        </button>
+      </div>
     </header>
   );
 }
@@ -791,6 +1301,17 @@ function IntroSection({ totalCourses, totalTopics, totalClasses }) {
 
 /* -------------------------- 2. CURSOS -------------------------- */
 
+function CourseSeal({ label }) {
+  return (
+    <div className="course-seal" title={label}>
+      <div className="course-seal-ring">
+        <GraduationCap size={17} color="#241B08" strokeWidth={2.4} />
+      </div>
+      <span className="course-seal-label">{label}</span>
+    </div>
+  );
+}
+
 function CourseCard({ course, completedMap, onOpen, index = 0 }) {
   const { total, done } = courseTotals(course, completedMap);
   const pct = total ? Math.round((done / total) * 100) : 0;
@@ -802,6 +1323,7 @@ function CourseCard({ course, completedMap, onOpen, index = 0 }) {
         background: C.surface,
         border: `1px solid ${C.border}`,
         cursor: 'pointer',
+        position: 'relative',
         transition: 'transform 0.25s cubic-bezier(.2,.8,.2,1), border-color 0.25s ease, box-shadow 0.25s ease',
         animationDelay: `${index * 80}ms`,
       }}
@@ -816,6 +1338,7 @@ function CourseCard({ course, completedMap, onOpen, index = 0 }) {
         e.currentTarget.style.boxShadow = 'none';
       }}
     >
+      {course.seal && <CourseSeal label={course.seal} />}
       <div className="flex items-start justify-between">
         <Crest color={course.color} Icon={course.icon} size={52} className="course-crest" />
         <span
@@ -1471,9 +1994,12 @@ function ClassView({ course, topic, activeClass, completedMap, onBack, onOpenCla
 
 /* El escalafón del reino: muestra los 11 niveles como un camino de progreso,
    resalta dónde está el estudiante hoy y qué falta para el siguiente peldaño. */
-function LevelsView({ completedCount, onBack }) {
+function LevelsView({ completedCount, completedMap, streak, unlockedBadges, onBack, onResetProgress }) {
+  const [confirmingReset, setConfirmingReset] = useState(false);
   const info = getLevelInfo(completedCount);
   const overallPct = TOTAL_CLASSES ? Math.round((completedCount / TOTAL_CLASSES) * 100) : 0;
+  const visual = getLevelVisual(info.level);
+  const effectiveStreak = getEffectiveStreak(streak);
 
   return (
     <div className="px-6 md:px-10 pb-20">
@@ -1487,9 +2013,22 @@ function LevelsView({ completedCount, onBack }) {
 
       <div
         className="flex flex-col md:flex-row gap-6 items-start mb-10 p-6 md:p-8 rounded-2xl"
-        style={{ background: C.surface, border: `1px solid ${C.gold}55` }}
+        style={{ background: C.surface, border: `1px solid ${visual.crestColor}55` }}
       >
-        <Crest color={C.gold} Icon={Trophy} size={78} pulse />
+        <Crest
+          color={visual.crestColor}
+          Icon={Trophy}
+          size={78}
+          pulse
+          ring={visual.ringEffect}
+          glow={visual.extraGlow}
+          sparkles={visual.sparkles}
+          doubleRing={visual.doubleRing}
+          secondaryColor={visual.secondaryColor}
+          accentColor={visual.accentColor}
+          shine={visual.shine}
+          rim={visual.rim}
+        />
         <div className="flex-1 min-w-0">
           <span className="text-xs uppercase" style={{ color: C.gold, letterSpacing: '0.2em' }}>
             Escalafón del reino
@@ -1505,6 +2044,9 @@ function LevelsView({ completedCount, onBack }) {
           <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: C.mutedDim }}>
             <span className="flex items-center gap-1"><Trophy size={14} /> {info.xp} XP</span>
             <span className="flex items-center gap-1"><CheckCircle2 size={14} /> {completedCount}/{TOTAL_CLASSES} clases · {overallPct}% del reino</span>
+            <span className="flex items-center gap-1">
+              <Flame size={14} color={effectiveStreak > 0 ? '#FF6B4A' : C.mutedDim} /> Racha de {effectiveStreak} {effectiveStreak === 1 ? 'día' : 'días'}
+            </span>
           </div>
         </div>
       </div>
@@ -1516,14 +2058,15 @@ function LevelsView({ completedCount, onBack }) {
         {LEVELS.map((lvl, idx) => {
           const achieved = completedCount >= lvl.classesNeeded;
           const isCurrent = lvl.level === info.level;
+          const rowVisual = getLevelVisual(lvl.level);
           return (
             <div
               key={lvl.level}
               className="card-in flex items-center gap-4 p-4 rounded-xl"
               style={{
-                background: isCurrent ? `${C.gold}14` : C.surface,
-                border: `1px solid ${isCurrent ? C.gold : C.border}`,
-                boxShadow: isCurrent ? `0 0 0 1px ${C.gold}33, 0 10px 26px -14px ${C.gold}88` : 'none',
+                background: isCurrent ? `${rowVisual.crestColor}14` : C.surface,
+                border: `1px solid ${isCurrent ? rowVisual.crestColor : C.border}`,
+                boxShadow: isCurrent ? `0 0 0 1px ${rowVisual.crestColor}33, 0 10px 26px -14px ${rowVisual.crestColor}88` : 'none',
                 animationDelay: `${idx * 60}ms`,
               }}
             >
@@ -1535,7 +2078,7 @@ function LevelsView({ completedCount, onBack }) {
                   background: achieved ? `${C.gold}22` : C.border,
                   color: achieved ? C.gold : C.mutedDim,
                   border: `1px solid ${achieved ? C.gold : '#2E3541'}`,
-                  '--crest-color': C.gold,
+                  '--crest-color': rowVisual.crestColor,
                 }}
               >
                 {achieved ? <CheckCircle2 size={18} className={isCurrent ? '' : 'check-pop'} /> : <Lock size={16} />}
@@ -1545,13 +2088,19 @@ function LevelsView({ completedCount, onBack }) {
                   Nivel {lvl.level} · {lvl.title}
                 </p>
                 <p style={{ color: C.mutedDim }} className="text-xs mt-1">
-                  {lvl.classesNeeded === 0 ? 'Punto de partida' : `${lvl.classesNeeded} clases completadas`}
+                  {lvl.level === 1
+                    ? 'Punto de partida'
+                    : isCurrent && info.isMaxLevel
+                    ? 'Nivel máximo alcanzado'
+                    : isCurrent
+                    ? `${info.classesDoneInLevel}/${lvl.gap} clases de este nivel`
+                    : `Pide ${lvl.gap} ${lvl.gap === 1 ? 'clase' : 'clases'} (desde el nivel anterior)`}
                 </p>
               </div>
               {isCurrent && (
                 <span
                   className="text-xs px-3 py-1 rounded-full shrink-0"
-                  style={{ background: `${C.gold}22`, color: C.gold, border: `1px solid ${C.gold}55` }}
+                  style={{ background: `${rowVisual.crestColor}22`, color: rowVisual.crestColor, border: `1px solid ${rowVisual.crestColor}55` }}
                 >
                   Estás aquí
                 </span>
@@ -1559,6 +2108,55 @@ function LevelsView({ completedCount, onBack }) {
             </div>
           );
         })}
+      </div>
+
+      <h3 style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-lg mb-1 mt-10">
+        Insignias del reino
+      </h3>
+      <p className="text-xs mb-4" style={{ color: C.mutedDim }}>
+        Logros aparte del nivel: una vez que los consigues, son tuyos para siempre.
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {BADGES.map((badge, idx) => (
+          <BadgeMedallion key={badge.id} badge={badge} unlocked={!!unlockedBadges[badge.id]} index={idx} />
+        ))}
+      </div>
+
+      <div className="mt-10 pt-6 flex flex-col items-center gap-3 text-center" style={{ borderTop: `1px solid ${C.border}` }}>
+        {!confirmingReset ? (
+          <button
+            onClick={() => setConfirmingReset(true)}
+            className="text-xs"
+            style={{ color: C.mutedDim, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px' }}
+          >
+            Reiniciar mi progreso
+          </button>
+        ) : (
+          <div className="flex flex-col items-center gap-2 animate-fadein">
+            <p className="text-xs" style={{ color: C.muted }}>
+              Esto borra todas las clases completadas y las insignias que dependen de ellas. Tu racha de días no se ve afectada. No se puede deshacer.
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  onResetProgress();
+                  setConfirmingReset(false);
+                }}
+                className="text-xs px-4 py-2 rounded-full"
+                style={{ background: '#4A1F24', color: '#F2A6AC', border: '1px solid #6E2A31', cursor: 'pointer' }}
+              >
+                Sí, reiniciar
+              </button>
+              <button
+                onClick={() => setConfirmingReset(false)}
+                className="text-xs px-4 py-2 rounded-full"
+                style={{ background: 'transparent', color: C.mutedDim, border: `1px solid ${C.border}`, cursor: 'pointer' }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1574,6 +2172,83 @@ export default function KingdomLevel() {
   const [notesCourseId, setNotesCourseId] = useState(null);
   const [notesTopicId, setNotesTopicId] = useState(null);
   const [completedMap, setCompletedMap] = useState({});
+  const [streak, setStreak] = useState({ currentStreak: 0, longestStreak: 0, lastActiveDate: null });
+  const [unlockedBadges, setUnlockedBadges] = useState({});
+
+  // --- Progreso guardado en el navegador (sin necesidad de login) ---------
+  // Usamos el almacenamiento propio de los artifacts de Claude (window.storage),
+  // NO localStorage: dentro de Claude.ai, localStorage está bloqueado y no
+  // funciona en este entorno. window.storage sí persiste, y es personal (cada
+  // estudiante ve solo su propio progreso, nadie más). Guardamos las clases
+  // completadas, la racha de días y las insignias desbloqueadas juntas, en
+  // una sola clave, para no hacer más llamadas de guardado de las necesarias.
+  //
+  // Nota para cuando publiques Kingdom Level como sitio propio, fuera de
+  // Claude.ai: window.storage ya no va a existir ahí. En un sitio normal
+  // reemplaza estas dos funciones por localStorage.getItem/setItem (ahí sí
+  // funciona sin restricciones) o, más adelante, por una base de datos real
+  // si agregas cuentas de usuario.
+  const STORAGE_KEY = 'kingdomlevel-progress';
+  const [progressLoaded, setProgressLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await window.storage.get(STORAGE_KEY, false);
+        if (!cancelled && result && result.value) {
+          const parsed = JSON.parse(result.value);
+          if (parsed && typeof parsed === 'object') {
+            if (parsed.completedMap) setCompletedMap(parsed.completedMap);
+            if (parsed.streak) setStreak(parsed.streak);
+            if (parsed.unlockedBadges) setUnlockedBadges(parsed.unlockedBadges);
+          }
+        }
+      } catch (err) {
+        // Primera visita (todavía no hay nada guardado) o falló la lectura:
+        // seguimos con todo en cero, sin romper la app.
+      } finally {
+        if (!cancelled) setProgressLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!progressLoaded) return; // evita pisar lo guardado con datos vacíos antes de terminar de cargar
+    (async () => {
+      try {
+        await window.storage.set(STORAGE_KEY, JSON.stringify({ completedMap, streak, unlockedBadges }), false);
+      } catch (err) {
+        // Si falla el guardado no bloqueamos la experiencia; se reintentará
+        // solo con el próximo cambio de progreso.
+      }
+    })();
+  }, [completedMap, streak, unlockedBadges, progressLoaded]);
+
+  // Registra que hoy hubo actividad y actualiza la racha (solo al MARCAR una
+  // clase como completada, nunca al desmarcarla).
+  function registerStudyActivityToday() {
+    const today = todayStr();
+    setStreak((prev) => {
+      if (prev.lastActiveDate === today) return prev; // hoy ya contaba, sin cambios
+      const diff = prev.lastActiveDate ? daysBetween(prev.lastActiveDate, today) : null;
+      const nextCurrent = diff === 1 ? prev.currentStreak + 1 : 1;
+      return {
+        currentStreak: nextCurrent,
+        longestStreak: Math.max(prev.longestStreak || 0, nextCurrent),
+        lastActiveDate: today,
+      };
+    });
+  }
+
+  function resetProgress() {
+    setCompletedMap({});
+    setUnlockedBadges({}); // las insignias dependen del progreso, así que se reinician junto con él
+    // La racha de días NO se toca: es sobre constancia, no sobre cuánto contenido completaste.
+  }
 
   const activeCourse = useMemo(() => courseData.find((c) => c.id === courseId) || null, [courseId]);
   const activeTopic = useMemo(
@@ -1592,12 +2267,31 @@ export default function KingdomLevel() {
   );
 
   const completedCount = Object.values(completedMap).filter(Boolean).length;
-  const { title: rankTitle, level, pct, xp, xpForNext, classesForNext, isMaxLevel } = getLevelInfo(completedCount);
+  const {
+    title: rankTitle,
+    level,
+    pct,
+    xp,
+    xpForNext,
+    classesForNext,
+    classesDoneInLevel,
+    classesNeededInLevel,
+    isMaxLevel,
+  } = getLevelInfo(completedCount);
 
   // Pequeña celebración cuando el estudiante sube de nivel al completar clases.
   const [levelUpToast, setLevelUpToast] = useState(null);
-  const prevLevelRef = useRef(level);
+  const prevLevelRef = useRef(null); // null = todavía no sabemos el nivel real guardado
   useEffect(() => {
+    if (!progressLoaded) return undefined; // esperamos a que cargue el progreso guardado
+
+    if (prevLevelRef.current === null) {
+      // Primera vez que conocemos el nivel real (recién cargado desde el
+      // guardado): lo registramos en silencio, sin festejar un "level up" falso.
+      prevLevelRef.current = level;
+      return undefined;
+    }
+
     if (level > prevLevelRef.current) {
       const colors = [C.gold, '#5B8DBF', C.emerald, C.amethyst, '#C1683F', '#B5495B'];
       const particles = Array.from({ length: 10 }).map((_, i) => {
@@ -1610,14 +2304,38 @@ export default function KingdomLevel() {
           color: colors[i % colors.length],
         };
       });
-      setLevelUpToast({ level, title: rankTitle, particles, isMaxLevel });
+      setLevelUpToast({ level, title: rankTitle, particles, isMaxLevel, unlockMessage: getLevelVisual(level).unlockMessage });
       const t = setTimeout(() => setLevelUpToast(null), 3600);
       prevLevelRef.current = level;
       return () => clearTimeout(t);
     }
     prevLevelRef.current = level;
     return undefined;
-  }, [level, rankTitle, isMaxLevel]);
+  }, [level, rankTitle, isMaxLevel, progressLoaded]);
+
+  // Detecta insignias nuevas cada vez que cambia el progreso o la racha, y las
+  // guarda para siempre (una vez desbloqueada, no se vuelve a bloquear).
+  const [badgeToast, setBadgeToast] = useState(null);
+  useEffect(() => {
+    if (!progressLoaded) return undefined;
+    const ctx = computeBadgeContext(completedMap, streak);
+    const merged = { ...unlockedBadges };
+    let newlyUnlocked = null;
+    BADGES.forEach((b) => {
+      if (!merged[b.id] && b.check(ctx)) {
+        merged[b.id] = true;
+        if (!newlyUnlocked) newlyUnlocked = b;
+      }
+    });
+    if (newlyUnlocked) {
+      setUnlockedBadges(merged);
+      setBadgeToast(newlyUnlocked);
+      const t = setTimeout(() => setBadgeToast(null), 3600);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [completedMap, streak, progressLoaded]);
 
   // --- Navegación conectada al historial del navegador -------------------
   // Aplica un estado de navegación completo (los 6 campos) a los estados de React.
@@ -1694,7 +2412,11 @@ export default function KingdomLevel() {
   }
   function toggleComplete(cId, tId, clId) {
     const key = `${cId}-${tId}-${clId}`;
-    setCompletedMap((prev) => ({ ...prev, [key]: !prev[key] }));
+    setCompletedMap((prev) => {
+      const willBeDone = !prev[key];
+      if (willBeDone) registerStudyActivityToday();
+      return { ...prev, [key]: willBeDone };
+    });
   }
 
   function openNotesCourse(cId) {
@@ -1740,6 +2462,48 @@ export default function KingdomLevel() {
         .course-crest { transition: transform 0.3s ease; }
         .course-card:hover .course-crest { transform: scale(1.08) rotate(-3deg); }
 
+        /* Sello fijo de curso (ej. "Materia de universidad"), estilo lacre. */
+        @keyframes sealWobble {
+          0%, 100% { transform: rotate(-8deg); }
+          50% { transform: rotate(-4deg); }
+        }
+        .course-seal {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          z-index: 3;
+          pointer-events: none;
+        }
+        .course-seal-ring {
+          width: 42px;
+          height: 42px;
+          border-radius: 9999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: radial-gradient(circle at 35% 30%, #F0DFA0, #C9A227 55%, #8C6E17 100%);
+          border: 2px solid #F0DFA0;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.45), inset 0 0 0 3px rgba(0,0,0,0.15);
+          animation: sealWobble 3.6s ease-in-out infinite;
+        }
+        .course-seal-label {
+          margin-top: 4px;
+          font-size: 8px;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          text-align: center;
+          color: #F0DFA0;
+          background: #14181f;
+          padding: 2px 6px;
+          border-radius: 4px;
+          white-space: nowrap;
+          border: 1px solid rgba(240,223,160,0.4);
+        }
+
         @keyframes shimmer {
           0% { transform: translateX(-120%); }
           60%, 100% { transform: translateX(260%); }
@@ -1757,6 +2521,14 @@ export default function KingdomLevel() {
           50% { opacity: 0.5; transform: scale(0.85); }
         }
         .icon-twinkle { animation: twinkle 2.4s ease-in-out infinite; display: inline-flex; }
+
+        @keyframes flameFlicker {
+          0%, 100% { transform: scale(1) rotate(0deg); }
+          25% { transform: scale(1.08) rotate(-4deg); }
+          50% { transform: scale(0.96) rotate(3deg); }
+          75% { transform: scale(1.05) rotate(-2deg); }
+        }
+        .flame-flicker { animation: flameFlicker 1.6s ease-in-out infinite; display: inline-flex; }
 
         @keyframes sparkleFloat {
           0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.35; }
@@ -1867,6 +2639,12 @@ export default function KingdomLevel() {
           to { opacity: 1; transform: translate(-50%, 0) scale(1); }
         }
         .level-up-toast { animation: toastIn 0.45s cubic-bezier(.34,1.56,.64,1) both; }
+
+        @keyframes badgeToastIn {
+          from { opacity: 0; transform: translate(24px, -10px) scale(0.9); }
+          to { opacity: 1; transform: translate(0, 0) scale(1); }
+        }
+        .badge-up-toast { animation: badgeToastIn 0.45s cubic-bezier(.34,1.56,.64,1) both; }
         @keyframes burstOut {
           0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
           100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0); opacity: 0; }
@@ -1909,9 +2687,95 @@ export default function KingdomLevel() {
           position: absolute;
           inset: -7px;
           border-radius: 9999px;
-          background: radial-gradient(circle, ${C.gold} 0%, transparent 70%);
+          background: radial-gradient(circle, var(--ping-color, ${C.gold}) 0%, transparent 70%);
           animation: xpPing 0.7s ease-out;
           pointer-events: none;
+        }
+
+        /* Anillo mágico giratorio alrededor del escudo, activado desde el Nivel 2. */
+        @keyframes levelRingSpin { to { transform: rotate(360deg); } }
+        .level-ring-effect {
+          position: absolute;
+          inset: -9px;
+          border-radius: 9999px;
+          background: conic-gradient(from 0deg, var(--ring-color-lvl, ${C.gold}), transparent 40%, var(--ring-color-lvl, ${C.gold}));
+          animation: levelRingSpin 3s linear infinite;
+          opacity: 0.6;
+          pointer-events: none;
+        }
+
+        /* Segundo anillo, girando en sentido contrario y con su propio color,
+           activado desde el Nivel 4 (entrada a la corte). */
+        @keyframes levelRingSpinReverse { to { transform: rotate(-360deg); } }
+        .level-ring-effect-secondary {
+          position: absolute;
+          inset: -15px;
+          border-radius: 9999px;
+          background: conic-gradient(from 180deg, var(--ring2-color-lvl, ${C.gold}), transparent 35%, var(--ring2-color-lvl, ${C.gold}));
+          animation: levelRingSpinReverse 4.5s linear infinite;
+          opacity: 0.45;
+          pointer-events: none;
+        }
+
+        /* Barrido de brillo cruzando la cara del escudo, activado desde el Nivel 4. */
+        @keyframes crestShineSweep {
+          0% { background-position: 130% 0%; }
+          100% { background-position: -30% 100%; }
+        }
+        .crest-shine {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.6) 48%, transparent 66%);
+          background-size: 240% 240%;
+          animation: crestShineSweep 3.2s ease-in-out infinite;
+          pointer-events: none;
+        }
+
+        /* Remache de escudo (8 destellos alrededor), activado desde el Nivel 5. */
+        @keyframes rimGlint {
+          0%, 100% { opacity: 0.35; }
+          50% { opacity: 1; }
+        }
+        .level-rim-stud {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 3px;
+          height: 9px;
+          border-radius: 1px;
+          background: var(--rim-color-lvl, ${C.gold});
+          box-shadow: 0 0 4px var(--rim-color-lvl, ${C.gold});
+          animation: rimGlint 2.4s ease-in-out infinite;
+          pointer-events: none;
+          z-index: 2;
+        }
+
+        /* Resplandor propio detrás del escudo, activado desde el Nivel 2. */
+        @keyframes extraGlowPulse {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.65; transform: scale(1.08); }
+        }
+        .level-extra-glow {
+          position: absolute;
+          inset: -10px;
+          border-radius: 9999px;
+          background: radial-gradient(circle, var(--glow-color-lvl, ${C.gold}) 0%, transparent 70%);
+          filter: blur(5px);
+          animation: extraGlowPulse 2.4s ease-in-out infinite;
+          pointer-events: none;
+        }
+
+        /* Chispas mágicas orbitando el escudo, activadas desde el Nivel 3. */
+        .level-sparkle-dot {
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          border-radius: 9999px;
+          background: var(--sparkle-color-lvl, ${C.gold});
+          box-shadow: 0 0 6px 1px var(--sparkle-color-lvl, ${C.gold});
+          animation: twinkle 1.8s ease-in-out infinite;
+          pointer-events: none;
+          z-index: 2;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1937,8 +2801,17 @@ export default function KingdomLevel() {
           .video-glow-frame::before,
           .check-pop,
           .level-up-toast,
+          .badge-up-toast,
           .level-up-particle,
-          .xp-ping {
+          .xp-ping,
+          .level-ring-effect,
+          .level-ring-effect-secondary,
+          .level-extra-glow,
+          .level-sparkle-dot,
+          .crest-shine,
+          .level-rim-stud,
+          .flame-flicker,
+          .course-seal-ring {
             animation: none !important;
           }
           html { scroll-behavior: auto; }
@@ -1952,9 +2825,12 @@ export default function KingdomLevel() {
         pct={pct}
         onHome={goHome}
         completedCount={completedCount}
-        classesForNext={classesForNext}
+        classesDoneInLevel={classesDoneInLevel}
+        classesNeededInLevel={classesNeededInLevel}
         isMaxLevel={isMaxLevel}
         onOpenLevels={openLevels}
+        progressLoaded={progressLoaded}
+        streak={streak}
       />
 
       <div
@@ -1965,7 +2841,16 @@ export default function KingdomLevel() {
           <HomeView completedMap={completedMap} onOpenCourse={openCourse} onOpenNotesCourse={openNotesCourse} />
         )}
 
-        {view === 'levels' && <LevelsView completedCount={completedCount} onBack={goHome} />}
+        {view === 'levels' && (
+          <LevelsView
+            completedCount={completedCount}
+            completedMap={completedMap}
+            streak={streak}
+            unlockedBadges={unlockedBadges}
+            onBack={goHome}
+            onResetProgress={resetProgress}
+          />
+        )}
 
         {view === 'course' && activeCourse && (
           <CourseView course={activeCourse} completedMap={completedMap} onBack={goHome} onOpenTopic={openTopic} />
@@ -2018,6 +2903,29 @@ export default function KingdomLevel() {
                 {levelUpToast.isMaxLevel ? '¡Nivel máximo alcanzado!' : '¡Subiste de nivel!'}
               </p>
               <p style={{ color: C.gold }} className="text-xs">Nivel {levelUpToast.level} · {levelUpToast.title}</p>
+              {levelUpToast.unlockMessage && (
+                <p style={{ color: C.mutedDim }} className="text-xs mt-0.5">{levelUpToast.unlockMessage}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {badgeToast && (
+        <div className="badge-up-toast" style={{ position: 'fixed', top: 88, right: 16, zIndex: 50, maxWidth: 260 }}>
+          <div
+            className="flex items-center gap-3 px-4 py-3 rounded-2xl"
+            style={{ background: C.surface, border: `1px solid ${badgeToast.color}`, boxShadow: `0 10px 30px -10px ${badgeToast.color}88` }}
+          >
+            <div
+              className="flex items-center justify-center rounded-full shrink-0"
+              style={{ width: 36, height: 36, background: `${badgeToast.color}22`, border: `1px solid ${badgeToast.color}` }}
+            >
+              <badgeToast.icon size={18} color={badgeToast.color} />
+            </div>
+            <div className="text-left leading-tight">
+              <p style={{ color: C.text }} className="text-xs font-semibold">¡Insignia desbloqueada!</p>
+              <p style={{ color: badgeToast.color }} className="text-xs">{badgeToast.title}</p>
             </div>
           </div>
         </div>
