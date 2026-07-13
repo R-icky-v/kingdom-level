@@ -79,6 +79,14 @@ import {
   Compass,
   TrendingUp,
   Landmark,
+  PenLine,
+  HelpCircle,
+  XCircle,
+  Timer,
+  Pause,
+  RotateCcw,
+  SkipForward,
+  ChevronDown,
 } from 'lucide-react';
 
 /* ------------------------------- TOKENS -------------------------------- */
@@ -142,7 +150,48 @@ const courseData = [
         title: 'Mercados, funciones y equilibrio',
         description: 'Cómo se comportan los mercados: quién compra, quién vende, y en qué punto se ponen de acuerdo.',
         classes: [
-          { id: 1, title: 'Introducción a los mercados, la oferta y la demanda', duration: '14:20', description: 'Qué es un mercado y cómo se representan la oferta y la demanda con funciones.', videoId: DEMO_VIDEO_ID },
+          {
+            id: 1,
+            title: 'Introducción a los mercados, la oferta y la demanda',
+            duration: '14:20',
+            description: 'Qué es un mercado y cómo se representan la oferta y la demanda con funciones.',
+            videoId: DEMO_VIDEO_ID,
+            quiz: [
+              {
+                question: '¿Qué representa la curva de demanda?',
+                options: [
+                  'La cantidad que los vendedores quieren vender a cada precio',
+                  'La cantidad que los compradores están dispuestos a comprar a cada precio',
+                  'El costo de producción',
+                  'La inflación del país',
+                ],
+                correctIndex: 1,
+                explanation: 'La demanda refleja el comportamiento de los compradores: normalmente, a menor precio, mayor cantidad demandada.',
+              },
+              {
+                question: '¿Qué ocurre generalmente cuando sube el precio de un bien (todo lo demás igual)?',
+                options: [
+                  'La cantidad demandada tiende a subir',
+                  'La cantidad demandada tiende a bajar',
+                  'La oferta desaparece',
+                  'No hay ningún efecto',
+                ],
+                correctIndex: 1,
+                explanation: 'Es la ley de la demanda: a mayor precio, la cantidad demandada tiende a disminuir, manteniendo todo lo demás constante.',
+              },
+              {
+                question: '¿Qué pasa generalmente con la curva de oferta cuando sube el precio de un bien?',
+                options: [
+                  'La cantidad ofrecida tiende a subir',
+                  'La cantidad ofrecida tiende a bajar',
+                  'La oferta se vuelve vertical',
+                  'No cambia nada',
+                ],
+                correctIndex: 0,
+                explanation: 'La ley de la oferta dice que, a mayor precio, los vendedores están dispuestos a ofrecer una mayor cantidad.',
+              },
+            ],
+          },
           { id: 2, title: 'Funciones de oferta y demanda', duration: '15:40', description: 'Cómo construir e interpretar las ecuaciones que describen el comportamiento de compradores y vendedores.', videoId: DEMO_VIDEO_ID },
           { id: 3, title: 'Equilibrio de mercado', duration: '13:15', description: 'Cómo encontrar el punto donde la oferta y la demanda se cruzan, y qué significa económicamente.', videoId: DEMO_VIDEO_ID },
         ],
@@ -308,7 +357,48 @@ const courseData = [
         title: 'Lógica y variables',
         description: 'Los primeros pasos: cómo piensa un programa y cómo se guarda la información.',
         classes: [
-          { id: 1, title: 'Introducción a la lógica de programación', duration: '12:30', description: 'Qué es un algoritmo y cómo aprender a pensar como una computadora.', videoId: DEMO_VIDEO_ID },
+          {
+            id: 1,
+            title: 'Introducción a la lógica de programación',
+            duration: '12:30',
+            description: 'Qué es un algoritmo y cómo aprender a pensar como una computadora.',
+            videoId: DEMO_VIDEO_ID,
+            quiz: [
+              {
+                question: '¿Qué es un algoritmo?',
+                options: [
+                  'Un lenguaje de programación específico',
+                  'Una secuencia ordenada de pasos para resolver un problema',
+                  'Un tipo de dato',
+                  'Un error en el código',
+                ],
+                correctIndex: 1,
+                explanation: 'Un algoritmo es independiente del lenguaje: es la lógica, el orden de los pasos, lo que realmente importa.',
+              },
+              {
+                question: "¿Por qué decimos que una computadora 'piensa' de forma lógica?",
+                options: [
+                  'Porque tiene inteligencia propia',
+                  'Porque sigue instrucciones exactas, sin ambigüedad',
+                  'Porque aprende de sus errores sola',
+                  'Porque puede improvisar soluciones',
+                ],
+                correctIndex: 1,
+                explanation: 'Las computadoras no interpretan intenciones: ejecutan exactamente lo que se les indica, paso a paso.',
+              },
+              {
+                question: '¿Cuál de estas NO es una característica deseable de un buen algoritmo?',
+                options: [
+                  'Ser preciso y sin ambigüedades',
+                  'Tener un número finito de pasos',
+                  'Depender de adivinar lo que quiere el usuario',
+                  'Producir un resultado esperado',
+                ],
+                correctIndex: 2,
+                explanation: 'Un algoritmo no debe depender de adivinar intenciones: cada paso tiene que estar completamente definido.',
+              },
+            ],
+          },
           { id: 2, title: 'Variables, tipos de datos y operadores', duration: '15:10', description: 'Cómo se guarda y manipula la información dentro de un programa.', videoId: DEMO_VIDEO_ID },
         ],
         notes: {
@@ -359,7 +449,48 @@ const courseData = [
         title: 'Estructuras lineales',
         description: 'Las formas más básicas de guardar y recorrer colecciones de datos.',
         classes: [
-          { id: 1, title: 'Arrays y listas enlazadas', duration: '14:00', description: 'Las dos formas más básicas de almacenar colecciones de datos en memoria.', videoId: DEMO_VIDEO_ID },
+          {
+            id: 1,
+            title: 'Arrays y listas enlazadas',
+            duration: '14:00',
+            description: 'Las dos formas más básicas de almacenar colecciones de datos en memoria.',
+            videoId: DEMO_VIDEO_ID,
+            quiz: [
+              {
+                question: '¿Cuál es la principal ventaja de un array frente a una lista enlazada?',
+                options: [
+                  'Acceso directo a cualquier elemento por su posición',
+                  'Tamaño siempre dinámico',
+                  'No ocupa memoria',
+                  'Se ordena solo',
+                ],
+                correctIndex: 0,
+                explanation: 'Los arrays permiten acceso directo (por índice) en tiempo constante, algo que una lista enlazada no puede hacer sin recorrerla.',
+              },
+              {
+                question: '¿Qué caracteriza a una lista enlazada?',
+                options: [
+                  'Todos sus elementos están en posiciones consecutivas de memoria',
+                  'Cada elemento apunta al siguiente',
+                  'Tiene un tamaño fijo desde su creación',
+                  'No permite agregar elementos',
+                ],
+                correctIndex: 1,
+                explanation: 'Cada nodo de una lista enlazada guarda su valor y una referencia (puntero) al siguiente nodo.',
+              },
+              {
+                question: '¿Qué operación es generalmente más costosa en un array que en una lista enlazada?',
+                options: [
+                  'Acceder a un elemento por su posición',
+                  'Insertar un elemento al principio',
+                  'Recorrer todos los elementos',
+                  'Leer el primer elemento',
+                ],
+                correctIndex: 1,
+                explanation: 'Insertar al principio de un array obliga a desplazar todos los demás elementos; en una lista enlazada basta con cambiar una referencia.',
+              },
+            ],
+          },
           { id: 2, title: 'Pilas y colas', duration: '12:40', description: 'Estructuras LIFO y FIFO y sus aplicaciones en el mundo real.', videoId: DEMO_VIDEO_ID },
         ],
         notes: {
@@ -409,7 +540,48 @@ const courseData = [
         title: 'Diseño de bases de datos',
         description: 'Cómo modelar un problema real en tablas, relaciones y reglas de consistencia.',
         classes: [
-          { id: 1, title: 'Modelo entidad-relación', duration: '13:20', description: 'Cómo traducir un problema del mundo real en tablas y relaciones.', videoId: DEMO_VIDEO_ID },
+          {
+            id: 1,
+            title: 'Modelo entidad-relación',
+            duration: '13:20',
+            description: 'Cómo traducir un problema del mundo real en tablas y relaciones.',
+            videoId: DEMO_VIDEO_ID,
+            quiz: [
+              {
+                question: "En un modelo entidad-relación, ¿qué representa una 'entidad'?",
+                options: [
+                  'Una acción del sistema',
+                  'Un objeto o concepto del mundo real que queremos guardar (ej. un cliente)',
+                  'Una consulta SQL',
+                  'Un tipo de índice',
+                ],
+                correctIndex: 1,
+                explanation: "Una entidad es algo identificable y relevante para el sistema, como 'Cliente', 'Producto' o 'Pedido'.",
+              },
+              {
+                question: "¿Qué muestra una 'relación' entre dos entidades?",
+                options: [
+                  'Cuál entidad es más importante',
+                  'Cómo se conectan o interactúan dos entidades entre sí',
+                  'El color de la tabla',
+                  'El nombre de la base de datos',
+                ],
+                correctIndex: 1,
+                explanation: "Las relaciones describen cómo se asocian las entidades, por ejemplo: un Cliente 'realiza' un Pedido.",
+              },
+              {
+                question: '¿Qué es un atributo dentro de una entidad?',
+                options: [
+                  'Otra entidad relacionada',
+                  'Una característica o dato que describe a la entidad (ej. nombre, edad)',
+                  'Una tabla completa',
+                  'Una consulta SQL',
+                ],
+                correctIndex: 1,
+                explanation: 'Los atributos son los datos concretos que describen a una entidad, por ejemplo: un Cliente tiene nombre, correo y teléfono.',
+              },
+            ],
+          },
           { id: 2, title: 'Normalización de bases de datos', duration: '14:50', description: 'Cómo evitar datos duplicados e inconsistentes en tu diseño.', videoId: DEMO_VIDEO_ID },
         ],
         notes: {
@@ -459,7 +631,48 @@ const courseData = [
         title: 'Fundamentos de objetos',
         description: 'El vocabulario base de la programación orientada a objetos: qué es una clase y cómo se relacionan entre sí.',
         classes: [
-          { id: 1, title: 'Clases y objetos', duration: '13:10', description: 'El vocabulario básico de la programación orientada a objetos.', videoId: DEMO_VIDEO_ID },
+          {
+            id: 1,
+            title: 'Clases y objetos',
+            duration: '13:10',
+            description: 'El vocabulario básico de la programación orientada a objetos.',
+            videoId: DEMO_VIDEO_ID,
+            quiz: [
+              {
+                question: '¿Qué es una clase en programación orientada a objetos?',
+                options: [
+                  'Una instancia específica de un objeto',
+                  'Un molde o plantilla que define atributos y comportamientos',
+                  'Una función suelta',
+                  'Un tipo de base de datos',
+                ],
+                correctIndex: 1,
+                explanation: 'La clase define la estructura; el objeto es una instancia concreta creada a partir de esa clase.',
+              },
+              {
+                question: '¿Qué es un objeto?',
+                options: [
+                  'El nombre de una clase',
+                  'Una instancia concreta de una clase, con sus propios datos',
+                  'Un error de compilación',
+                  'Una variable global',
+                ],
+                correctIndex: 1,
+                explanation: "Si 'Perro' es la clase, 'Firulais' sería un objeto: una instancia concreta con sus propios valores.",
+              },
+              {
+                question: '¿Qué representan los métodos de una clase?',
+                options: [
+                  'Los datos que almacena el objeto',
+                  'Las acciones o comportamientos que el objeto puede realizar',
+                  'El nombre del archivo',
+                  'Un tipo de variable',
+                ],
+                correctIndex: 1,
+                explanation: 'Los métodos son las funciones definidas dentro de una clase: representan lo que un objeto puede hacer.',
+              },
+            ],
+          },
           { id: 2, title: 'Herencia y polimorfismo', duration: '16:35', description: 'Cómo reutilizar y especializar comportamiento entre clases.', videoId: DEMO_VIDEO_ID },
         ],
         notes: {
@@ -508,7 +721,38 @@ const courseData = [
         title: 'Modelos y direccionamiento',
         description: 'Las capas que hacen posible la comunicación y cómo se organizan las direcciones en una red.',
         classes: [
-          { id: 1, title: 'Modelo OSI y TCP/IP', duration: '15:00', description: 'Las capas que hacen posible la comunicación entre dispositivos.', videoId: DEMO_VIDEO_ID },
+          {
+            id: 1,
+            title: 'Modelo OSI y TCP/IP',
+            duration: '15:00',
+            description: 'Las capas que hacen posible la comunicación entre dispositivos.',
+            videoId: DEMO_VIDEO_ID,
+            quiz: [
+              {
+                question: '¿Para qué sirve el modelo OSI?',
+                options: [
+                  'Para acelerar internet',
+                  'Para organizar en capas las funciones de la comunicación entre dispositivos',
+                  'Para diseñar interfaces gráficas',
+                  'Para escribir bases de datos',
+                ],
+                correctIndex: 1,
+                explanation: 'El modelo OSI divide la comunicación en 7 capas, cada una con una responsabilidad específica.',
+              },
+              {
+                question: '¿Cuántas capas tiene el modelo OSI?',
+                options: ['4', '5', '7', '10'],
+                correctIndex: 2,
+                explanation: 'El modelo OSI tiene 7 capas, desde la física (cables, señales) hasta la de aplicación (lo que usa el usuario final).',
+              },
+              {
+                question: '¿Qué capa del modelo OSI se encarga de las aplicaciones que usa directamente el usuario (como el navegador)?',
+                options: ['La capa física', 'La capa de aplicación', 'La capa de red', 'La capa de enlace de datos'],
+                correctIndex: 1,
+                explanation: 'La capa de aplicación es la más cercana al usuario: ahí operan protocolos como HTTP, que usan programas como el navegador.',
+              },
+            ],
+          },
           { id: 2, title: 'Direccionamiento IP y subredes', duration: '17:25', description: 'Cómo se organizan y dividen las direcciones en una red.', videoId: DEMO_VIDEO_ID },
         ],
         notes: {
@@ -557,7 +801,43 @@ const courseData = [
         title: 'Planificación del proyecto',
         description: 'Las etapas de un proyecto de software y cómo organizarlas con metodologías ágiles.',
         classes: [
-          { id: 1, title: 'Ciclo de vida del software', duration: '13:40', description: 'Las etapas por las que pasa todo proyecto, del análisis al mantenimiento.', videoId: DEMO_VIDEO_ID },
+          {
+            id: 1,
+            title: 'Ciclo de vida del software',
+            duration: '13:40',
+            description: 'Las etapas por las que pasa todo proyecto, del análisis al mantenimiento.',
+            videoId: DEMO_VIDEO_ID,
+            quiz: [
+              {
+                question: "¿Qué es el 'ciclo de vida del software'?",
+                options: [
+                  'El tiempo que dura una reunión de equipo',
+                  'Las etapas por las que pasa un proyecto, desde el análisis hasta el mantenimiento',
+                  'La vida útil de una computadora',
+                  'El lenguaje de programación usado',
+                ],
+                correctIndex: 1,
+                explanation: 'Incluye etapas como análisis, diseño, desarrollo, pruebas, despliegue y mantenimiento.',
+              },
+              {
+                question: '¿Por qué es importante la etapa de mantenimiento?',
+                options: [
+                  'Porque ahí se factura el proyecto',
+                  'Porque el software sigue necesitando ajustes y correcciones después de entregado',
+                  'Porque ahí se contrata al equipo',
+                  'No es una etapa real',
+                ],
+                correctIndex: 1,
+                explanation: "Ningún software queda 'terminado para siempre': sigue necesitando correcciones, mejoras y actualizaciones.",
+              },
+              {
+                question: '¿En qué etapa del ciclo de vida se identifica qué necesita realmente el usuario?',
+                options: ['Mantenimiento', 'Análisis de requisitos', 'Despliegue', 'Pruebas'],
+                correctIndex: 1,
+                explanation: 'El análisis de requisitos es donde se define qué problema hay que resolver, antes de empezar a diseñar o programar.',
+              },
+            ],
+          },
           { id: 2, title: 'Metodologías ágiles (Scrum)', duration: '16:15', description: 'Cómo organizar equipos de desarrollo en sprints e iteraciones.', videoId: DEMO_VIDEO_ID },
         ],
         notes: {
@@ -1341,18 +1621,18 @@ function CourseCard({ course, completedMap, onOpen, index = 0 }) {
       {course.seal && <CourseSeal label={course.seal} />}
       <div className="flex items-start justify-between">
         <Crest color={course.color} Icon={course.icon} size={52} className="course-crest" />
-        <span
-          className="text-xs px-3 py-1 rounded-full text-right"
-          style={{ background: `${course.color}22`, color: course.color, border: `1px solid ${course.color}55` }}
-        >
-          {course.topics.length} temas · {total} clases
-        </span>
       </div>
       <div>
         <h3 style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-lg mb-1">
           {course.title}
         </h3>
-        <p className="text-sm" style={{ color: C.muted }}>{course.tagline}</p>
+        <p className="text-sm mb-2" style={{ color: C.muted }}>{course.tagline}</p>
+        <span
+          className="inline-flex text-xs px-3 py-1 rounded-full"
+          style={{ background: `${course.color}22`, color: course.color, border: `1px solid ${course.color}55` }}
+        >
+          {course.topics.length} temas · {total} clases
+        </span>
       </div>
       <div className="mt-auto flex items-center justify-between pt-4" style={{ borderTop: `1px solid ${C.border}` }}>
         <div className="flex items-center gap-2 text-xs" style={{ color: C.muted }}>
@@ -1887,9 +2167,155 @@ function TopicView({ course, topic, completedMap, onBack, onOpenClass }) {
 }
 
 /* Nivel 4: video de la clase, con "Siguientes clases" a la derecha (estilo YouTube) */
-function ClassView({ course, topic, activeClass, completedMap, onBack, onOpenClass, onToggleComplete }) {
+/* Cuaderno personal del estudiante: aparte de los apuntes oficiales del tema,
+   cada clase tiene su propio espacio de notas privadas. Se guarda solo, con un
+   pequeño retraso mientras escribe, y nunca se pierde texto al cambiar de
+   clase rápido (se guarda lo pendiente antes de salir). */
+/* Mini quiz opcional al final de una clase: es solo para reforzar, no bloquea
+   nada. Cada clase decide si tiene quiz agregando un arreglo `quiz` con sus
+   preguntas en courseData; las que no lo tienen simplemente no muestran esta
+   sección. Las respuestas no se guardan entre visitas a propósito: es un
+   repaso rápido, no una evaluación con historial. */
+function ClassQuiz({ quiz }) {
+  const [answers, setAnswers] = useState({});
+
+  function selectAnswer(qIndex, optIndex) {
+    setAnswers((prev) => (prev[qIndex] !== undefined ? prev : { ...prev, [qIndex]: optIndex }));
+  }
+
+  function resetQuiz() {
+    setAnswers({});
+  }
+
+  const answeredCount = Object.keys(answers).length;
+  const correctCount = quiz.reduce((acc, q, i) => acc + (answers[i] === q.correctIndex ? 1 : 0), 0);
+  const allAnswered = answeredCount === quiz.length;
+
+  return (
+    <div className="mt-4 p-4 md:p-5 rounded-xl" style={{ border: `1px solid ${C.border}`, background: C.surface }}>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <p className="text-xs font-semibold flex items-center gap-2" style={{ color: C.muted }}>
+          <HelpCircle size={14} color={C.gold} /> Mini quiz — opcional, para reforzar
+        </p>
+        {allAnswered && (
+          <span className="text-xs font-semibold" style={{ color: correctCount === quiz.length ? C.emerald : C.mutedDim }}>
+            {correctCount}/{quiz.length} correctas
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-5">
+        {quiz.map((q, qi) => {
+          const selected = answers[qi];
+          const answered = selected !== undefined;
+          return (
+            <div key={qi}>
+              <p className="text-sm mb-2" style={{ color: C.text }}>{qi + 1}. {q.question}</p>
+              <div className="flex flex-col gap-2">
+                {q.options.map((opt, oi) => {
+                  const isCorrect = oi === q.correctIndex;
+                  const isSelectedWrong = answered && oi === selected && !isCorrect;
+                  let optStyle = { border: `1px solid ${C.border}`, background: 'transparent', color: C.muted };
+                  if (answered && isCorrect) optStyle = { border: `1px solid ${C.emerald}`, background: `${C.emerald}18`, color: C.text };
+                  else if (isSelectedWrong) optStyle = { border: '1px solid #B5495B', background: '#B5495B18', color: C.text };
+                  return (
+                    <button
+                      key={oi}
+                      onClick={() => selectAnswer(qi, oi)}
+                      disabled={answered}
+                      className="quiz-option text-left text-sm px-3 py-2 rounded-lg flex items-center gap-2"
+                      style={{ ...optStyle, cursor: answered ? 'default' : 'pointer' }}
+                    >
+                      {answered && isCorrect && <CheckCircle2 size={14} color={C.emerald} className="shrink-0" />}
+                      {isSelectedWrong && <XCircle size={14} color="#E08D95" className="shrink-0" />}
+                      <span>{opt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {answered && q.explanation && (
+                <p className="text-xs mt-2 leading-relaxed" style={{ color: C.mutedDim }}>{q.explanation}</p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {answeredCount > 0 && (
+        <button
+          onClick={resetQuiz}
+          className="text-xs mt-4"
+          style={{ color: C.mutedDim, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px' }}
+        >
+          Reintentar quiz
+        </button>
+      )}
+    </div>
+  );
+}
+
+function PersonalNotebook({ noteKey, value, onSave }) {
+  const [draft, setDraft] = useState(value || '');
+  const [status, setStatus] = useState('idle'); // idle | saving | saved
+  const pendingRef = useRef(null); // { key, value, timer }
+
+  function flushPending() {
+    if (pendingRef.current) {
+      const { key, value: pendingValue, timer } = pendingRef.current;
+      clearTimeout(timer);
+      onSave(key, pendingValue);
+      pendingRef.current = null;
+    }
+  }
+
+  useEffect(() => {
+    flushPending(); // por si veníamos de otra clase con algo sin guardar todavía
+    setDraft(value || '');
+    setStatus('idle');
+    return () => {
+      flushPending(); // y al salir de esta clase, tampoco perdemos lo último escrito
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noteKey]);
+
+  function handleChange(e) {
+    const text = e.target.value;
+    setDraft(text);
+    setStatus('saving');
+    if (pendingRef.current) clearTimeout(pendingRef.current.timer);
+    const timer = setTimeout(() => {
+      onSave(noteKey, text);
+      setStatus('saved');
+      pendingRef.current = null;
+    }, 700);
+    pendingRef.current = { key: noteKey, value: text, timer };
+  }
+
+  return (
+    <div className="mt-4 rounded-xl p-4 personal-notebook" style={{ border: `1px solid ${C.border}` }}>
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+        <p className="text-xs font-semibold flex items-center gap-2" style={{ color: C.muted }}>
+          <PenLine size={14} color={C.gold} /> Mis apuntes de esta clase
+        </p>
+        <span className="text-xs" style={{ color: status === 'saving' ? C.mutedDim : C.emerald }}>
+          {status === 'saving' ? 'Guardando…' : status === 'saved' ? 'Guardado ✓' : ''}
+        </span>
+      </div>
+      <textarea
+        value={draft}
+        onChange={handleChange}
+        placeholder="Escribe aquí lo que quieras recordar de esta clase. Solo tú lo puedes ver — es tu cuaderno propio, aparte de los apuntes oficiales del tema."
+        className="notebook-textarea w-full text-sm"
+        rows={5}
+      />
+    </div>
+  );
+}
+
+function ClassView({ course, topic, activeClass, completedMap, onBack, onOpenClass, onToggleComplete, personalNotes = {}, onSaveNote = () => {} }) {
   const idx = topic.classes.findIndex((cl) => cl.id === activeClass.id);
   const done = !!completedMap[`${course.id}-${topic.id}-${activeClass.id}`];
+  const noteKey = `${course.id}-${topic.id}-${activeClass.id}`;
 
   return (
     <div className="px-6 md:px-10 pb-20">
@@ -1949,6 +2375,12 @@ function ClassView({ course, topic, activeClass, completedMap, onBack, onOpenCla
             <p className="text-xs font-semibold mb-2" style={{ color: C.muted }}>En esta clase avanzaremos:</p>
             <p className="text-sm leading-relaxed" style={{ color: C.muted }}>{activeClass.description}</p>
           </div>
+
+          {/* Mini quiz opcional, solo si esta clase tiene preguntas cargadas */}
+          {activeClass.quiz && activeClass.quiz.length > 0 && <ClassQuiz key={noteKey} quiz={activeClass.quiz} />}
+
+          {/* Cuaderno personal del estudiante, aparte de los apuntes oficiales del tema */}
+          <PersonalNotebook key={noteKey} noteKey={noteKey} value={personalNotes[noteKey]} onSave={onSaveNote} />
         </div>
 
         {/* Columna derecha: las siguientes clases de este mismo tema, como la lista "A continuación" de YouTube */}
@@ -2162,6 +2594,122 @@ function LevelsView({ completedCount, completedMap, streak, unlockedBadges, onBa
   );
 }
 
+/* ------------------------------ POMODORO ---------------------------------- */
+/* Temporizador de estudio global: vive en el componente principal (App), no
+   dentro de ninguna vista, así que cambiar de clase, tema o curso NUNCA lo
+   reinicia ni lo detiene — sigue corriendo de fondo mientras el estudiante
+   navega por todo Kingdom Level. Si recarga la página por completo sí se
+   reinicia (como cualquier cronómetro de una pestaña), pero moverse dentro
+   del sitio jamás lo toca. */
+
+const POMODORO_DURATIONS = { focus: 25 * 60, shortBreak: 5 * 60, longBreak: 15 * 60 };
+const POMODORO_LABELS = { focus: 'Enfoque', shortBreak: 'Descanso corto', longBreak: 'Descanso largo' };
+
+function formatPomodoroTime(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+  const s = Math.floor(totalSeconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+// Un pequeño "ding" con Web Audio, sin archivos de sonido externos. Si el
+// navegador lo bloquea (algunos entornos con iframes lo hacen), simplemente
+// no suena nada — el aviso visual sigue funcionando igual.
+function playPomodoroChime() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.55);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.55);
+  } catch (err) {
+    // silencio si el navegador bloquea audio
+  }
+}
+
+function PomodoroWidget({ mode, secondsLeft, running, sessionsDone, open, flash, onToggleOpen, onToggleRun, onReset, onSkip }) {
+  const modeColor = mode === 'focus' ? C.gold : mode === 'shortBreak' ? C.emerald : '#5B8DBF';
+  const modeLabel = POMODORO_LABELS[mode];
+  const totalForMode = POMODORO_DURATIONS[mode];
+  const pct = Math.round(((totalForMode - secondsLeft) / totalForMode) * 100);
+
+  return (
+    <div style={{ position: 'fixed', bottom: 20, left: 20, zIndex: 40 }}>
+      {flash && (
+        <div className="pomodoro-flash mb-3" style={{ maxWidth: 240 }}>
+          <div className="text-xs px-3 py-2 rounded-xl" style={{ background: C.surface, border: `1px solid ${modeColor}`, color: C.text }}>
+            {flash}
+          </div>
+        </div>
+      )}
+
+      {open ? (
+        <div
+          className="rounded-2xl p-4"
+          style={{ width: 220, background: C.surface, border: `1px solid ${modeColor}`, boxShadow: `0 14px 34px -12px ${modeColor}77` }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold uppercase" style={{ color: modeColor, letterSpacing: '0.1em' }}>
+              {modeLabel}
+            </span>
+            <button
+              onClick={onToggleOpen}
+              title="Minimizar"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.mutedDim, padding: 0 }}
+            >
+              <ChevronDown size={16} />
+            </button>
+          </div>
+
+          <div className="text-center mb-3">
+            <span style={{ fontFamily: FONT_DISPLAY, fontSize: '2.1rem', color: C.text }}>{formatPomodoroTime(secondsLeft)}</span>
+          </div>
+
+          <div className="rounded-full mb-4" style={{ height: 4, background: C.border, overflow: 'hidden' }}>
+            <div className="rounded-full" style={{ height: 4, width: `${pct}%`, background: modeColor, transition: 'width 1s linear' }} />
+          </div>
+
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <button onClick={onReset} title="Reiniciar esta fase" className="pomodoro-btn flex items-center justify-center rounded-full" style={{ width: 32, height: 32, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim, cursor: 'pointer' }}>
+              <RotateCcw size={14} />
+            </button>
+            <button
+              onClick={onToggleRun}
+              title={running ? 'Pausar' : 'Iniciar'}
+              className="pomodoro-btn-main flex items-center justify-center rounded-full"
+              style={{ width: 44, height: 44, background: modeColor, border: 'none', color: '#0A0C10', cursor: 'pointer' }}
+            >
+              {running ? <Pause size={18} /> : <Play size={18} style={{ marginLeft: 2 }} />}
+            </button>
+            <button onClick={onSkip} title="Saltar a la siguiente fase" className="pomodoro-btn flex items-center justify-center rounded-full" style={{ width: 32, height: 32, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim, cursor: 'pointer' }}>
+              <SkipForward size={14} />
+            </button>
+          </div>
+
+          <p className="text-center text-xs" style={{ color: C.mutedDim }}>
+            {sessionsDone % 4}/4 sesiones · {Math.floor(sessionsDone / 4)} {Math.floor(sessionsDone / 4) === 1 ? 'ciclo' : 'ciclos'}
+          </p>
+        </div>
+      ) : (
+        <button
+          onClick={onToggleOpen}
+          className="pomodoro-pill flex items-center gap-2 rounded-full px-4 py-3"
+          style={{ background: C.surface, border: `1px solid ${modeColor}`, cursor: 'pointer', boxShadow: `0 10px 26px -12px ${modeColor}77` }}
+        >
+          <Timer size={16} color={modeColor} className={running ? 'icon-twinkle' : ''} />
+          <span className="text-xs font-semibold" style={{ color: C.text }}>{formatPomodoroTime(secondsLeft)}</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 /* --------------------------------- APP ----------------------------------- */
 
 export default function KingdomLevel() {
@@ -2174,14 +2722,21 @@ export default function KingdomLevel() {
   const [completedMap, setCompletedMap] = useState({});
   const [streak, setStreak] = useState({ currentStreak: 0, longestStreak: 0, lastActiveDate: null });
   const [unlockedBadges, setUnlockedBadges] = useState({});
+  const [personalNotes, setPersonalNotes] = useState({});
 
   // --- Progreso guardado en el navegador (sin necesidad de login) ---------
   // Usamos el almacenamiento propio de los artifacts de Claude (window.storage),
   // NO localStorage: dentro de Claude.ai, localStorage está bloqueado y no
   // funciona en este entorno. window.storage sí persiste, y es personal (cada
   // estudiante ve solo su propio progreso, nadie más). Guardamos las clases
-  // completadas, la racha de días y las insignias desbloqueadas juntas, en
-  // una sola clave, para no hacer más llamadas de guardado de las necesarias.
+  // completadas, la racha de días, las insignias desbloqueadas y los apuntes
+  // personales juntos, en una sola clave.
+  //
+  // El guardado tiene un pequeño retraso (debounce): en vez de llamar a
+  // window.storage.set en cada cambio (por ejemplo, cada letra que el
+  // estudiante escribe en sus notas personales), esperamos un momento sin
+  // cambios nuevos antes de guardar. Así evitamos disparar el guardado
+  // decenas de veces por segundo mientras alguien está escribiendo.
   //
   // Nota para cuando publiques Kingdom Level como sitio propio, fuera de
   // Claude.ai: window.storage ya no va a existir ahí. En un sitio normal
@@ -2202,6 +2757,7 @@ export default function KingdomLevel() {
             if (parsed.completedMap) setCompletedMap(parsed.completedMap);
             if (parsed.streak) setStreak(parsed.streak);
             if (parsed.unlockedBadges) setUnlockedBadges(parsed.unlockedBadges);
+            if (parsed.personalNotes) setPersonalNotes(parsed.personalNotes);
           }
         }
       } catch (err) {
@@ -2218,15 +2774,22 @@ export default function KingdomLevel() {
 
   useEffect(() => {
     if (!progressLoaded) return; // evita pisar lo guardado con datos vacíos antes de terminar de cargar
-    (async () => {
-      try {
-        await window.storage.set(STORAGE_KEY, JSON.stringify({ completedMap, streak, unlockedBadges }), false);
-      } catch (err) {
-        // Si falla el guardado no bloqueamos la experiencia; se reintentará
-        // solo con el próximo cambio de progreso.
-      }
-    })();
-  }, [completedMap, streak, unlockedBadges, progressLoaded]);
+    const t = setTimeout(() => {
+      (async () => {
+        try {
+          await window.storage.set(STORAGE_KEY, JSON.stringify({ completedMap, streak, unlockedBadges, personalNotes }), false);
+        } catch (err) {
+          // Si falla el guardado no bloqueamos la experiencia; se reintentará
+          // solo con el próximo cambio de progreso.
+        }
+      })();
+    }, 600);
+    return () => clearTimeout(t);
+  }, [completedMap, streak, unlockedBadges, personalNotes, progressLoaded]);
+
+  function saveNote(key, text) {
+    setPersonalNotes((prev) => ({ ...prev, [key]: text }));
+  }
 
   // Registra que hoy hubo actividad y actualiza la racha (solo al MARCAR una
   // clase como completada, nunca al desmarcarla).
@@ -2248,6 +2811,69 @@ export default function KingdomLevel() {
     setCompletedMap({});
     setUnlockedBadges({}); // las insignias dependen del progreso, así que se reinician junto con él
     // La racha de días NO se toca: es sobre constancia, no sobre cuánto contenido completaste.
+  }
+
+  // --- Temporizador Pomodoro (global) -------------------------------------
+  // Vive acá, en App, y no dentro de ninguna vista — por eso nunca se
+  // reinicia al cambiar de clase, tema o curso.
+  const [pomodoroMode, setPomodoroMode] = useState('focus');
+  const [pomodoroSecondsLeft, setPomodoroSecondsLeft] = useState(POMODORO_DURATIONS.focus);
+  const [pomodoroRunning, setPomodoroRunning] = useState(false);
+  const [pomodoroSessionsDone, setPomodoroSessionsDone] = useState(0);
+  const [pomodoroOpen, setPomodoroOpen] = useState(false);
+  const [pomodoroFlash, setPomodoroFlash] = useState(null);
+
+  // El "tick" del reloj: baja un segundo por vez mientras esté corriendo.
+  useEffect(() => {
+    if (!pomodoroRunning) return undefined;
+    const id = setInterval(() => {
+      setPomodoroSecondsLeft((s) => Math.max(0, s - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [pomodoroRunning]);
+
+  function advancePomodoroPhase() {
+    playPomodoroChime();
+    setPomodoroRunning(false);
+    if (pomodoroMode === 'focus') {
+      const nextSessions = pomodoroSessionsDone + 1;
+      const goLong = nextSessions % 4 === 0;
+      const nextMode = goLong ? 'longBreak' : 'shortBreak';
+      setPomodoroSessionsDone(nextSessions);
+      setPomodoroMode(nextMode);
+      setPomodoroSecondsLeft(POMODORO_DURATIONS[nextMode]);
+      setPomodoroFlash(
+        goLong ? '¡4 sesiones completas! Te ganaste un descanso largo.' : '¡Sesión de enfoque terminada! Hora de un descanso corto.'
+      );
+    } else {
+      setPomodoroMode('focus');
+      setPomodoroSecondsLeft(POMODORO_DURATIONS.focus);
+      setPomodoroFlash('Descanso terminado. ¿Listo para otra sesión de enfoque?');
+    }
+    setTimeout(() => setPomodoroFlash(null), 5000);
+  }
+
+  // Cuando el conteo llega a 0 mientras corre, avanza de fase automáticamente.
+  useEffect(() => {
+    if (pomodoroRunning && pomodoroSecondsLeft === 0) {
+      advancePomodoroPhase();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pomodoroSecondsLeft, pomodoroRunning]);
+
+  function togglePomodoroRun() {
+    setPomodoroRunning((r) => !r);
+    setPomodoroOpen(true); // al iniciar/pausar, mostramos el panel para que vea qué pasó
+  }
+  function resetPomodoroPhase() {
+    setPomodoroRunning(false);
+    setPomodoroSecondsLeft(POMODORO_DURATIONS[pomodoroMode]);
+  }
+  function skipPomodoroPhase() {
+    advancePomodoroPhase();
+  }
+  function togglePomodoroOpen() {
+    setPomodoroOpen((o) => !o);
   }
 
   const activeCourse = useMemo(() => courseData.find((c) => c.id === courseId) || null, [courseId]);
@@ -2469,8 +3095,8 @@ export default function KingdomLevel() {
         }
         .course-seal {
           position: absolute;
-          top: 12px;
-          right: 12px;
+          top: -14px;
+          right: -10px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -2616,6 +3242,49 @@ export default function KingdomLevel() {
         .back-btn:hover { color: ${C.gold} !important; }
         .back-chevron { transition: transform 0.2s ease; }
         .back-btn:hover .back-chevron { transform: translateX(-3px); }
+
+        /* Temporizador Pomodoro (flotante, global) */
+        .pomodoro-pill { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .pomodoro-pill:hover { transform: translateY(-2px); }
+        .pomodoro-pill:active { transform: translateY(0) scale(0.97); }
+        .pomodoro-btn { transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease; }
+        .pomodoro-btn:hover { border-color: ${C.gold} !important; color: ${C.gold} !important; }
+        .pomodoro-btn:active { transform: scale(0.94); }
+        .pomodoro-btn-main { transition: transform 0.15s ease, filter 0.2s ease; }
+        .pomodoro-btn-main:hover { filter: brightness(1.1); transform: scale(1.05); }
+        .pomodoro-btn-main:active { transform: scale(0.96); }
+        @keyframes pomodoroFlashIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .pomodoro-flash { animation: pomodoroFlashIn 0.35s ease both; }
+
+        /* Mini quiz al final de la clase */
+        .quiz-option { transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease; }
+        .quiz-option:not(:disabled):hover { border-color: ${C.gold} !important; transform: translateX(2px); }
+        .quiz-option:not(:disabled):active { transform: translateX(1px) scale(0.99); }
+
+        /* Cuaderno personal del estudiante, dentro de cada clase */
+        .personal-notebook {
+          background-color: #12151b;
+          background-image: repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent 25px,
+            ${C.gold}24 26px
+          );
+        }
+        .notebook-textarea {
+          background: transparent;
+          border: none;
+          outline: none;
+          resize: vertical;
+          color: ${C.text};
+          line-height: 26px;
+          font-family: ${FONT_BODY};
+          min-height: 130px;
+        }
+        .notebook-textarea::placeholder { color: ${C.mutedDim}; }
 
         /* Logo del header */
         .logo-btn .logo-crest { transition: transform 0.3s ease; }
@@ -2787,7 +3456,8 @@ export default function KingdomLevel() {
           .intro-video-in,
           .intro-stats-in,
           .reveal,
-          .nav-transition {
+          .nav-transition,
+          .pomodoro-flash {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
@@ -2833,6 +3503,19 @@ export default function KingdomLevel() {
         streak={streak}
       />
 
+      <PomodoroWidget
+        mode={pomodoroMode}
+        secondsLeft={pomodoroSecondsLeft}
+        running={pomodoroRunning}
+        sessionsDone={pomodoroSessionsDone}
+        open={pomodoroOpen}
+        flash={pomodoroFlash}
+        onToggleOpen={togglePomodoroOpen}
+        onToggleRun={togglePomodoroRun}
+        onReset={resetPomodoroPhase}
+        onSkip={skipPomodoroPhase}
+      />
+
       <div
         key={`${view}-${courseId || ''}-${topicId || ''}-${classId || ''}-${notesCourseId || ''}-${notesTopicId || ''}`}
         className={`nav-transition nav-${direction}`}
@@ -2875,6 +3558,8 @@ export default function KingdomLevel() {
             onBack={backToTopic}
             onOpenClass={openClass}
             onToggleComplete={toggleComplete}
+            personalNotes={personalNotes}
+            onSaveNote={saveNote}
           />
         )}
 
