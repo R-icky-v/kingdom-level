@@ -86,6 +86,8 @@ import {
   Pause,
   RotateCcw,
   SkipForward,
+  Minus,
+  Plus,
   ChevronDown,
 } from 'lucide-react';
 
@@ -1368,7 +1370,24 @@ function BadgeMedallion({ badge, unlocked, index = 0 }) {
   );
 }
 
-function Header({ level, rankTitle, pct, onHome, completedCount = 0, classesDoneInLevel = 0, classesNeededInLevel = 0, isMaxLevel = false, onOpenLevels, progressLoaded = true, streak = null }) {
+function Header({
+  level,
+  rankTitle,
+  pct,
+  onHome,
+  completedCount = 0,
+  classesDoneInLevel = 0,
+  classesNeededInLevel = 0,
+  isMaxLevel = false,
+  onOpenLevels,
+  progressLoaded = true,
+  streak = null,
+  pomodoro,
+  onPomodoroToggleOpen,
+  onPomodoroToggleRun,
+  onPomodoroReset,
+  onPomodoroSkip,
+}) {
   const visual = getLevelVisual(level);
   const effectiveStreak = progressLoaded ? getEffectiveStreak(streak) : 0;
   const activeToday = progressLoaded && isActiveToday(streak);
@@ -1442,6 +1461,19 @@ function Header({ level, rankTitle, pct, onHome, completedCount = 0, classesDone
             </span>
           </div>
         </button>
+
+        <PomodoroWidget
+          mode={pomodoro.mode}
+          secondsLeft={pomodoro.secondsLeft}
+          running={pomodoro.running}
+          sessionsDone={pomodoro.sessionsDone}
+          open={pomodoro.open}
+          flash={pomodoro.flash}
+          onToggleOpen={onPomodoroToggleOpen}
+          onToggleRun={onPomodoroToggleRun}
+          onReset={onPomodoroReset}
+          onSkip={onPomodoroSkip}
+        />
       </div>
     </header>
   );
@@ -2600,10 +2632,17 @@ function LevelsView({ completedCount, completedMap, streak, unlockedBadges, onBa
    reinicia ni lo detiene — sigue corriendo de fondo mientras el estudiante
    navega por todo Kingdom Level. Si recarga la página por completo sí se
    reinicia (como cualquier cronómetro de una pestaña), pero moverse dentro
-   del sitio jamás lo toca. */
+   del sitio jamás lo toca. El estudiante puede ajustar cuánto dura cada
+   sesión de concentración y cada descanso; esa preferencia sí se guarda
+   entre visitas (el conteo en marcha, no). */
 
-const POMODORO_DURATIONS = { focus: 25 * 60, shortBreak: 5 * 60, longBreak: 15 * 60 };
-const POMODORO_LABELS = { focus: 'Enfoque', shortBreak: 'Descanso corto', longBreak: 'Descanso largo' };
+const POMODORO_DEFAULT_FOCUS_MIN = 25;
+const POMODORO_DEFAULT_BREAK_MIN = 5;
+const POMODORO_FOCUS_MIN_RANGE = [5, 90];
+const POMODORO_BREAK_MIN_RANGE = [1, 30];
+const POMODORO_FOCUS_STEP = 5;
+const POMODORO_BREAK_STEP = 1;
+const POMODORO_LABELS = { focus: 'Enfoque', break: 'Descanso' };
 
 function formatPomodoroTime(totalSeconds) {
   const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
@@ -2633,78 +2672,162 @@ function playPomodoroChime() {
   }
 }
 
-function PomodoroWidget({ mode, secondsLeft, running, sessionsDone, open, flash, onToggleOpen, onToggleRun, onReset, onSkip }) {
-  const modeColor = mode === 'focus' ? C.gold : mode === 'shortBreak' ? C.emerald : '#5B8DBF';
+function PomodoroWidget({
+  mode,
+  secondsLeft,
+  running,
+  sessionsDone,
+  open,
+  flash,
+  focusMinutes,
+  breakMinutes,
+  onToggleOpen,
+  onToggleRun,
+  onReset,
+  onSkip,
+  onChangeFocusMinutes,
+  onChangeBreakMinutes,
+}) {
+  const modeColor = mode === 'focus' ? C.gold : C.emerald;
   const modeLabel = POMODORO_LABELS[mode];
-  const totalForMode = POMODORO_DURATIONS[mode];
+  const totalForMode = (mode === 'focus' ? focusMinutes : breakMinutes) * 60;
   const pct = Math.round(((totalForMode - secondsLeft) / totalForMode) * 100);
+  const [focusMin, focusMax] = POMODORO_FOCUS_MIN_RANGE;
+  const [breakMin, breakMax] = POMODORO_BREAK_MIN_RANGE;
 
   return (
-    <div style={{ position: 'fixed', bottom: 20, left: 20, zIndex: 40 }}>
-      {flash && (
-        <div className="pomodoro-flash mb-3" style={{ maxWidth: 240 }}>
-          <div className="text-xs px-3 py-2 rounded-xl" style={{ background: C.surface, border: `1px solid ${modeColor}`, color: C.text }}>
-            {flash}
-          </div>
-        </div>
-      )}
+    <div className="relative">
+      <button
+        onClick={onToggleOpen}
+        className="pomodoro-pill flex items-center gap-2 rounded-full px-3 py-2"
+        style={{ background: C.surface, border: `1px solid ${modeColor}`, cursor: 'pointer' }}
+      >
+        <Timer size={16} color={modeColor} className={running ? 'icon-twinkle' : ''} />
+        <span className="text-xs font-semibold" style={{ color: C.text }}>{formatPomodoroTime(secondsLeft)}</span>
+      </button>
 
-      {open ? (
+      {(open || flash) && (
         <div
-          className="rounded-2xl p-4"
-          style={{ width: 220, background: C.surface, border: `1px solid ${modeColor}`, boxShadow: `0 14px 34px -12px ${modeColor}77` }}
+          className="flex flex-col items-end gap-3"
+          style={{ position: 'absolute', top: 'calc(100% + 10px)', right: 0, zIndex: 30 }}
         >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold uppercase" style={{ color: modeColor, letterSpacing: '0.1em' }}>
-              {modeLabel}
-            </span>
-            <button
-              onClick={onToggleOpen}
-              title="Minimizar"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.mutedDim, padding: 0 }}
+          {flash && (
+            <div className="pomodoro-flash" style={{ maxWidth: 240 }}>
+              <div className="text-xs px-3 py-2 rounded-xl" style={{ background: C.surface, border: `1px solid ${modeColor}`, color: C.text }}>
+                {flash}
+              </div>
+            </div>
+          )}
+
+          {open && (
+            <div
+              className="rounded-2xl p-4"
+              style={{ width: 240, background: C.surface, border: `1px solid ${modeColor}`, boxShadow: `0 14px 34px -12px ${modeColor}77` }}
             >
-              <ChevronDown size={16} />
-            </button>
-          </div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold uppercase" style={{ color: modeColor, letterSpacing: '0.1em' }}>
+                  {modeLabel}
+                </span>
+                <button
+                  onClick={onToggleOpen}
+                  title="Cerrar"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.mutedDim, padding: 0 }}
+                >
+                  <ChevronDown size={16} style={{ transform: 'rotate(180deg)' }} />
+                </button>
+              </div>
 
-          <div className="text-center mb-3">
-            <span style={{ fontFamily: FONT_DISPLAY, fontSize: '2.1rem', color: C.text }}>{formatPomodoroTime(secondsLeft)}</span>
-          </div>
+              <div className="text-center mb-3">
+                <span style={{ fontFamily: FONT_DISPLAY, fontSize: '2.1rem', color: C.text }}>{formatPomodoroTime(secondsLeft)}</span>
+              </div>
 
-          <div className="rounded-full mb-4" style={{ height: 4, background: C.border, overflow: 'hidden' }}>
-            <div className="rounded-full" style={{ height: 4, width: `${pct}%`, background: modeColor, transition: 'width 1s linear' }} />
-          </div>
+              <div className="rounded-full mb-4" style={{ height: 4, background: C.border, overflow: 'hidden' }}>
+                <div className="rounded-full" style={{ height: 4, width: `${pct}%`, background: modeColor, transition: 'width 1s linear' }} />
+              </div>
 
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <button onClick={onReset} title="Reiniciar esta fase" className="pomodoro-btn flex items-center justify-center rounded-full" style={{ width: 32, height: 32, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim, cursor: 'pointer' }}>
-              <RotateCcw size={14} />
-            </button>
-            <button
-              onClick={onToggleRun}
-              title={running ? 'Pausar' : 'Iniciar'}
-              className="pomodoro-btn-main flex items-center justify-center rounded-full"
-              style={{ width: 44, height: 44, background: modeColor, border: 'none', color: '#0A0C10', cursor: 'pointer' }}
-            >
-              {running ? <Pause size={18} /> : <Play size={18} style={{ marginLeft: 2 }} />}
-            </button>
-            <button onClick={onSkip} title="Saltar a la siguiente fase" className="pomodoro-btn flex items-center justify-center rounded-full" style={{ width: 32, height: 32, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim, cursor: 'pointer' }}>
-              <SkipForward size={14} />
-            </button>
-          </div>
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <button onClick={onReset} title="Reiniciar esta fase" className="pomodoro-btn flex items-center justify-center rounded-full" style={{ width: 32, height: 32, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim, cursor: 'pointer' }}>
+                  <RotateCcw size={14} />
+                </button>
+                <button
+                  onClick={onToggleRun}
+                  title={running ? 'Pausar' : 'Iniciar'}
+                  className="pomodoro-btn-main flex items-center justify-center rounded-full"
+                  style={{ width: 44, height: 44, background: modeColor, border: 'none', color: '#0A0C10', cursor: 'pointer' }}
+                >
+                  {running ? <Pause size={18} /> : <Play size={18} style={{ marginLeft: 2 }} />}
+                </button>
+                <button onClick={onSkip} title="Saltar a la siguiente fase" className="pomodoro-btn flex items-center justify-center rounded-full" style={{ width: 32, height: 32, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim, cursor: 'pointer' }}>
+                  <SkipForward size={14} />
+                </button>
+              </div>
 
-          <p className="text-center text-xs" style={{ color: C.mutedDim }}>
-            {sessionsDone % 4}/4 sesiones · {Math.floor(sessionsDone / 4)} {Math.floor(sessionsDone / 4) === 1 ? 'ciclo' : 'ciclos'}
-          </p>
+              <p className="text-center text-xs mb-3" style={{ color: C.mutedDim }}>
+                {sessionsDone} {sessionsDone === 1 ? 'sesión completada' : 'sesiones completadas'}
+              </p>
+
+              <div className="flex flex-col gap-2 pt-3" style={{ borderTop: `1px solid ${C.border}` }}>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs" style={{ color: C.muted }}>Concentración</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onChangeFocusMinutes(-POMODORO_FOCUS_STEP)}
+                      disabled={running || focusMinutes <= focusMin}
+                      title="Menos minutos de concentración"
+                      className="pomodoro-stepper flex items-center justify-center rounded-full"
+                      style={{ width: 22, height: 22, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim }}
+                    >
+                      <Minus size={11} />
+                    </button>
+                    <span className="text-xs font-semibold" style={{ color: C.text, minWidth: 44, textAlign: 'center' }}>
+                      {focusMinutes} min
+                    </span>
+                    <button
+                      onClick={() => onChangeFocusMinutes(POMODORO_FOCUS_STEP)}
+                      disabled={running || focusMinutes >= focusMax}
+                      title="Más minutos de concentración"
+                      className="pomodoro-stepper flex items-center justify-center rounded-full"
+                      style={{ width: 22, height: 22, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim }}
+                    >
+                      <Plus size={11} />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs" style={{ color: C.muted }}>Descanso</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onChangeBreakMinutes(-POMODORO_BREAK_STEP)}
+                      disabled={running || breakMinutes <= breakMin}
+                      title="Menos minutos de descanso"
+                      className="pomodoro-stepper flex items-center justify-center rounded-full"
+                      style={{ width: 22, height: 22, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim }}
+                    >
+                      <Minus size={11} />
+                    </button>
+                    <span className="text-xs font-semibold" style={{ color: C.text, minWidth: 44, textAlign: 'center' }}>
+                      {breakMinutes} min
+                    </span>
+                    <button
+                      onClick={() => onChangeBreakMinutes(POMODORO_BREAK_STEP)}
+                      disabled={running || breakMinutes >= breakMax}
+                      title="Más minutos de descanso"
+                      className="pomodoro-stepper flex items-center justify-center rounded-full"
+                      style={{ width: 22, height: 22, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim }}
+                    >
+                      <Plus size={11} />
+                    </button>
+                  </div>
+                </div>
+                {running && (
+                  <p className="text-xs mt-1" style={{ color: C.mutedDim }}>
+                    Pausa el temporizador para cambiar la duración.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      ) : (
-        <button
-          onClick={onToggleOpen}
-          className="pomodoro-pill flex items-center gap-2 rounded-full px-4 py-3"
-          style={{ background: C.surface, border: `1px solid ${modeColor}`, cursor: 'pointer', boxShadow: `0 10px 26px -12px ${modeColor}77` }}
-        >
-          <Timer size={16} color={modeColor} className={running ? 'icon-twinkle' : ''} />
-          <span className="text-xs font-semibold" style={{ color: C.text }}>{formatPomodoroTime(secondsLeft)}</span>
-        </button>
       )}
     </div>
   );
@@ -2815,13 +2938,67 @@ export default function KingdomLevel() {
 
   // --- Temporizador Pomodoro (global) -------------------------------------
   // Vive acá, en App, y no dentro de ninguna vista — por eso nunca se
-  // reinicia al cambiar de clase, tema o curso.
+  // reinicia al cambiar de clase, tema o curso. La duración de cada fase es
+  // configurable por el estudiante y esa preferencia sí se guarda entre
+  // visitas (el conteo en marcha, no).
+  const [pomodoroFocusMinutes, setPomodoroFocusMinutes] = useState(POMODORO_DEFAULT_FOCUS_MIN);
+  const [pomodoroBreakMinutes, setPomodoroBreakMinutes] = useState(POMODORO_DEFAULT_BREAK_MIN);
   const [pomodoroMode, setPomodoroMode] = useState('focus');
-  const [pomodoroSecondsLeft, setPomodoroSecondsLeft] = useState(POMODORO_DURATIONS.focus);
+  const [pomodoroSecondsLeft, setPomodoroSecondsLeft] = useState(POMODORO_DEFAULT_FOCUS_MIN * 60);
   const [pomodoroRunning, setPomodoroRunning] = useState(false);
   const [pomodoroSessionsDone, setPomodoroSessionsDone] = useState(0);
   const [pomodoroOpen, setPomodoroOpen] = useState(false);
   const [pomodoroFlash, setPomodoroFlash] = useState(null);
+
+  // Guarda solo la preferencia de duración (no el conteo en marcha) para que,
+  // si el estudiante ya ajustó "35 min de enfoque, 8 de descanso", se lo
+  // encuentre así la próxima vez que entre.
+  const POMODORO_SETTINGS_KEY = 'kingdomlevel-pomodoro-settings';
+  const [pomodoroSettingsLoaded, setPomodoroSettingsLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await window.storage.get(POMODORO_SETTINGS_KEY, false);
+        if (!cancelled && result && result.value) {
+          const parsed = JSON.parse(result.value);
+          if (parsed && typeof parsed === 'object') {
+            if (parsed.focusMinutes) {
+              setPomodoroFocusMinutes(parsed.focusMinutes);
+              setPomodoroSecondsLeft(parsed.focusMinutes * 60); // recién arrancando, el modo sigue siendo 'focus'
+            }
+            if (parsed.breakMinutes) setPomodoroBreakMinutes(parsed.breakMinutes);
+          }
+        }
+      } catch (err) {
+        // Primera visita: seguimos con 25/5 minutos por defecto.
+      } finally {
+        if (!cancelled) setPomodoroSettingsLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!pomodoroSettingsLoaded) return;
+    const t = setTimeout(() => {
+      (async () => {
+        try {
+          await window.storage.set(
+            POMODORO_SETTINGS_KEY,
+            JSON.stringify({ focusMinutes: pomodoroFocusMinutes, breakMinutes: pomodoroBreakMinutes }),
+            false
+          );
+        } catch (err) {
+          // Sin bloquear la experiencia; se reintenta con el próximo cambio.
+        }
+      })();
+    }, 500);
+    return () => clearTimeout(t);
+  }, [pomodoroFocusMinutes, pomodoroBreakMinutes, pomodoroSettingsLoaded]);
 
   // El "tick" del reloj: baja un segundo por vez mientras esté corriendo.
   useEffect(() => {
@@ -2836,18 +3013,13 @@ export default function KingdomLevel() {
     playPomodoroChime();
     setPomodoroRunning(false);
     if (pomodoroMode === 'focus') {
-      const nextSessions = pomodoroSessionsDone + 1;
-      const goLong = nextSessions % 4 === 0;
-      const nextMode = goLong ? 'longBreak' : 'shortBreak';
-      setPomodoroSessionsDone(nextSessions);
-      setPomodoroMode(nextMode);
-      setPomodoroSecondsLeft(POMODORO_DURATIONS[nextMode]);
-      setPomodoroFlash(
-        goLong ? '¡4 sesiones completas! Te ganaste un descanso largo.' : '¡Sesión de enfoque terminada! Hora de un descanso corto.'
-      );
+      setPomodoroSessionsDone((n) => n + 1);
+      setPomodoroMode('break');
+      setPomodoroSecondsLeft(pomodoroBreakMinutes * 60);
+      setPomodoroFlash('¡Sesión de enfoque terminada! Hora de un descanso.');
     } else {
       setPomodoroMode('focus');
-      setPomodoroSecondsLeft(POMODORO_DURATIONS.focus);
+      setPomodoroSecondsLeft(pomodoroFocusMinutes * 60);
       setPomodoroFlash('Descanso terminado. ¿Listo para otra sesión de enfoque?');
     }
     setTimeout(() => setPomodoroFlash(null), 5000);
@@ -2867,13 +3039,31 @@ export default function KingdomLevel() {
   }
   function resetPomodoroPhase() {
     setPomodoroRunning(false);
-    setPomodoroSecondsLeft(POMODORO_DURATIONS[pomodoroMode]);
+    setPomodoroSecondsLeft((pomodoroMode === 'focus' ? pomodoroFocusMinutes : pomodoroBreakMinutes) * 60);
   }
   function skipPomodoroPhase() {
     advancePomodoroPhase();
   }
   function togglePomodoroOpen() {
     setPomodoroOpen((o) => !o);
+  }
+
+  // Cambia cuántos minutos dura cada fase. Solo se permite mientras el
+  // temporizador está pausado (los botones ya vienen deshabilitados si está
+  // corriendo, esto es una segunda barrera de seguridad).
+  function changePomodoroFocusMinutes(delta) {
+    if (pomodoroRunning) return;
+    const [min, max] = POMODORO_FOCUS_MIN_RANGE;
+    const next = Math.min(max, Math.max(min, pomodoroFocusMinutes + delta));
+    setPomodoroFocusMinutes(next);
+    if (pomodoroMode === 'focus') setPomodoroSecondsLeft(next * 60);
+  }
+  function changePomodoroBreakMinutes(delta) {
+    if (pomodoroRunning) return;
+    const [min, max] = POMODORO_BREAK_MIN_RANGE;
+    const next = Math.min(max, Math.max(min, pomodoroBreakMinutes + delta));
+    setPomodoroBreakMinutes(next);
+    if (pomodoroMode === 'break') setPomodoroSecondsLeft(next * 60);
   }
 
   const activeCourse = useMemo(() => courseData.find((c) => c.id === courseId) || null, [courseId]);
@@ -3501,19 +3691,18 @@ export default function KingdomLevel() {
         onOpenLevels={openLevels}
         progressLoaded={progressLoaded}
         streak={streak}
-      />
-
-      <PomodoroWidget
-        mode={pomodoroMode}
-        secondsLeft={pomodoroSecondsLeft}
-        running={pomodoroRunning}
-        sessionsDone={pomodoroSessionsDone}
-        open={pomodoroOpen}
-        flash={pomodoroFlash}
-        onToggleOpen={togglePomodoroOpen}
-        onToggleRun={togglePomodoroRun}
-        onReset={resetPomodoroPhase}
-        onSkip={skipPomodoroPhase}
+        pomodoro={{
+          mode: pomodoroMode,
+          secondsLeft: pomodoroSecondsLeft,
+          running: pomodoroRunning,
+          sessionsDone: pomodoroSessionsDone,
+          open: pomodoroOpen,
+          flash: pomodoroFlash,
+        }}
+        onPomodoroToggleOpen={togglePomodoroOpen}
+        onPomodoroToggleRun={togglePomodoroRun}
+        onPomodoroReset={resetPomodoroPhase}
+        onPomodoroSkip={skipPomodoroPhase}
       />
 
       <div
