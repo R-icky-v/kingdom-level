@@ -55,6 +55,7 @@ import {
   Network,
   ShieldCheck,
   ChevronLeft,
+  ChevronRight,
   Play,
   CheckCircle2,
   Clock,
@@ -82,6 +83,10 @@ import {
   PenLine,
   HelpCircle,
   XCircle,
+  Repeat,
+  Circle,
+  X,
+  Search,
   Timer,
   Pause,
   RotateCcw,
@@ -1053,6 +1058,48 @@ function isActiveToday(streak) {
   return !!streak && streak.lastActiveDate === todayStr();
 }
 
+/* ---------------------------- PLANIFICADOR --------------------------------- */
+/* Helpers de fecha para el planificador semanal: arrancan la semana en lunes
+   y trabajan siempre con fechas locales (mismo criterio que la racha). */
+
+const PLANNER_WEEKDAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const PLANNER_WEEKDAY_FULL = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+const PLANNER_MONTH_LABELS = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+];
+
+function formatLongDate(d) {
+  const weekday = PLANNER_WEEKDAY_FULL[(d.getDay() + 6) % 7]; // getDay(): 0=domingo..6=sábado → lunes=0
+  const label = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  return `${label} ${d.getDate()} de ${PLANNER_MONTH_LABELS[d.getMonth()]}`;
+}
+
+function getMonthGridDays(monthCursor) {
+  const firstOfMonth = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
+  const start = startOfWeek(firstOfMonth);
+  return Array.from({ length: 42 }, (_, i) => addDays(start, i)); // 6 semanas fijas, la grilla nunca "salta" de tamaño
+}
+
+function formatDateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function startOfWeek(date) {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 = domingo, 1 = lunes, ...
+  const diff = (day === 0 ? -6 : 1) - day; // retrocede hasta el lunes de esa semana
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function addDays(date, n) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
 /* ------------------------------ INSIGNIAS ---------------------------------- */
 /* Insignias extra, aparte del nivel: celebran logros puntuales (el primer
    tema, el primer curso, una racha larga, etc.) en vez de solo el progreso
@@ -1167,6 +1214,134 @@ const BADGES = [
   },
 ];
 
+/* --------------------------- REPASO ESPACIADO ------------------------------ */
+/* Tarjetas de repetición espaciada: se generan solas a partir de las preguntas
+   de quiz que ya existen en courseData (pregunta = frente, respuesta correcta
+   + explicación = dorso). Así, cualquier clase a la que le agregues un `quiz`
+   automáticamente le suma tarjetas al repaso, sin escribir nada aparte.
+
+   El algoritmo es un sistema Leitner simple (como el de Anki, simplificado):
+   cada tarjeta tiene una "caja" del 0 al 5. Calificarla mejor la sube de caja
+   y la programa más lejos en el futuro; calificarla "otra vez" la manda de
+   vuelta a la caja 0. Los intervalos son en días desde la última repetición. */
+
+const ALL_FLASHCARDS = (() => {
+  const cards = [];
+  courseData.forEach((course) => {
+    course.topics.forEach((topic) => {
+      topic.classes.forEach((cl) => {
+        if (cl.quiz && cl.quiz.length) {
+          cl.quiz.forEach((q, qi) => {
+            cards.push({
+              id: `${course.id}-${topic.id}-${cl.id}-q${qi}`,
+              courseId: course.id,
+              courseTitle: course.title,
+              courseColor: course.color,
+              topicId: topic.id,
+              topicTitle: topic.title,
+              classTitle: cl.title,
+              front: q.question,
+              back: q.explanation ? `${q.options[q.correctIndex]}\n\n${q.explanation}` : q.options[q.correctIndex],
+            });
+          });
+        }
+      });
+    });
+  });
+  return cards;
+})();
+
+const LEITNER_INTERVALS_DAYS = [0, 1, 3, 7, 14, 30];
+const LEITNER_MAX_BOX = LEITNER_INTERVALS_DAYS.length - 1;
+
+function getCardProgress(flashcardProgress, cardId) {
+  return flashcardProgress[cardId] || { box: 0, dueDate: null };
+}
+
+// Sin fecha registrada (nunca repasada) siempre cuenta como "pendiente hoy".
+function isCardDueToday(progress, today) {
+  return !progress.dueDate || progress.dueDate <= today;
+}
+
+function nextCardProgress(progress, rating) {
+  let box = progress.box || 0;
+  if (rating === 'again') box = 0;
+  else if (rating === 'good') box = Math.min(box + 1, LEITNER_MAX_BOX);
+  else if (rating === 'easy') box = Math.min(box + 2, LEITNER_MAX_BOX);
+
+  const due = new Date();
+  due.setDate(due.getDate() + LEITNER_INTERVALS_DAYS[box]);
+  const dueDate = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(due.getDate()).padStart(2, '0')}`;
+  return { box, dueDate };
+}
+
+/* ------------------------------ BUSCADOR ----------------------------------- */
+/* El "Buscador del reino": un solo índice armado una vez a partir de
+   courseData, con cursos, temas, clases y apuntes. Buscar es solo filtrar
+   ese índice por texto — no hace falta ninguna librería aparte. */
+
+const SEARCH_INDEX = (() => {
+  const index = [];
+  courseData.forEach((course) => {
+    index.push({
+      type: 'course',
+      id: `course-${course.id}`,
+      title: course.title,
+      subtitle: course.tagline,
+      searchText: `${course.title} ${course.tagline} ${course.description}`.toLowerCase(),
+      color: course.color,
+      icon: course.icon,
+      courseId: course.id,
+    });
+    course.topics.forEach((topic) => {
+      index.push({
+        type: 'topic',
+        id: `topic-${course.id}-${topic.id}`,
+        title: topic.title,
+        subtitle: course.title,
+        searchText: `${topic.title} ${topic.description}`.toLowerCase(),
+        color: course.color,
+        icon: course.icon,
+        courseId: course.id,
+        topicId: topic.id,
+      });
+      if (topic.notes) {
+        index.push({
+          type: 'notes',
+          id: `notes-${course.id}-${topic.id}`,
+          title: `Apuntes: ${topic.title}`,
+          subtitle: course.title,
+          searchText: `${topic.notes.summary || ''} ${(topic.notes.keyPoints || []).join(' ')}`.toLowerCase(),
+          color: course.color,
+          icon: FileText,
+          courseId: course.id,
+          topicId: topic.id,
+        });
+      }
+      topic.classes.forEach((cl) => {
+        index.push({
+          type: 'class',
+          id: `class-${course.id}-${topic.id}-${cl.id}`,
+          title: cl.title,
+          subtitle: `${course.title} · ${topic.title}`,
+          searchText: `${cl.title} ${cl.description}`.toLowerCase(),
+          color: course.color,
+          icon: Play,
+          courseId: course.id,
+          topicId: topic.id,
+          classId: cl.id,
+        });
+      });
+    });
+  });
+  return index;
+})();
+
+function searchKingdom(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  return SEARCH_INDEX.filter((item) => item.title.toLowerCase().includes(q) || item.searchText.includes(q)).slice(0, 20);
+}
 
 /* ------------------------------ AYUDANTES -------------------------------- */
 
@@ -1193,12 +1368,16 @@ function topicTotals(course, topic, completedMap) {
 // celular retrocedan un paso dentro de Kingdom Level en vez de salir del sitio.
 // Profundidad de cada vista dentro de la jerarquía, usada para decidir si una
 // transición de pantalla debe sentirse como "avanzar" o "retroceder".
-const VIEW_DEPTH = { home: 0, levels: 1, course: 1, topic: 2, class: 3, notesCourse: 1, notesTopic: 2 };
+const VIEW_DEPTH = { home: 0, levels: 1, flashcards: 1, planner: 1, course: 1, topic: 2, class: 3, notesCourse: 1, notesTopic: 2 };
 
 function hashForNav(next) {
   switch (next.view) {
     case 'levels':
       return '#niveles';
+    case 'flashcards':
+      return '#repaso';
+    case 'planner':
+      return '#planificador';
     case 'course':
       return `#curso/${next.courseId}`;
     case 'topic':
@@ -1387,6 +1566,10 @@ function Header({
   onPomodoroToggleRun,
   onPomodoroReset,
   onPomodoroSkip,
+  onPomodoroChangeFocus,
+  onPomodoroChangeBreak,
+  onSearchNavigate,
+  onOpenFlashcards,
 }) {
   const visual = getLevelVisual(level);
   const effectiveStreak = progressLoaded ? getEffectiveStreak(streak) : 0;
@@ -1414,6 +1597,18 @@ function Header({
       </button>
 
       <div className="flex items-center gap-3 flex-wrap">
+        <SearchWidget onNavigate={onSearchNavigate} />
+
+        <button
+          onClick={onOpenFlashcards}
+          className="pomodoro-pill flex items-center gap-2 rounded-full px-3 py-2"
+          style={{ background: C.surface, border: `1px solid ${C.border}`, cursor: 'pointer' }}
+          title="Repaso espaciado (flashcards)"
+        >
+          <Repeat size={16} color={C.emerald} />
+          <span className="text-xs font-semibold" style={{ color: C.text }}>¡Estudiemos!</span>
+        </button>
+
         <div
           className="flex items-center gap-2 rounded-full px-3 py-2"
           style={{ background: C.surface, border: `1px solid ${C.border}` }}
@@ -1469,10 +1664,14 @@ function Header({
           sessionsDone={pomodoro.sessionsDone}
           open={pomodoro.open}
           flash={pomodoro.flash}
+          focusMinutes={pomodoro.focusMinutes}
+          breakMinutes={pomodoro.breakMinutes}
           onToggleOpen={onPomodoroToggleOpen}
           onToggleRun={onPomodoroToggleRun}
           onReset={onPomodoroReset}
           onSkip={onPomodoroSkip}
+          onChangeFocusMinutes={onPomodoroChangeFocus}
+          onChangeBreakMinutes={onPomodoroChangeBreak}
         />
       </div>
     </header>
@@ -1895,6 +2094,78 @@ const JOIN_PATHS = [
   },
 ];
 
+/* Vitrina de "Repaso espaciado" en la portada: invita a repasar sin entrar
+   todavía a la sesión, mostrando cuántas tarjetas hay pendientes hoy. */
+function FlashcardsSection({ onOpen }) {
+  return (
+    <section className="px-6 md:px-10 pb-16">
+      <div
+        className="relative overflow-hidden rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-start md:items-center gap-8"
+        style={{ background: `linear-gradient(135deg, ${C.surface} 0%, #171C26 100%)`, border: `1px solid ${C.border}` }}
+      >
+        <AmbientGlow variant="community" />
+        <Crest color={C.emerald} Icon={Repeat} size={72} pulse className="relative" />
+        <div className="flex-1 min-w-0 relative">
+          <div className="flex items-center gap-2 mb-3" style={{ color: C.emerald }}>
+            <Repeat size={16} />
+            <span className="text-xs uppercase" style={{ letterSpacing: '0.25em' }}>Repaso espaciado</span>
+          </div>
+          <h2 style={{ fontFamily: FONT_DISPLAY, color: C.text, lineHeight: 1.25 }} className="text-2xl md:text-3xl mb-4 max-w-xl">
+            No dejes que se te olvide lo que ya aprendiste
+          </h2>
+          <p className="text-sm md:text-base max-w-xl mb-6" style={{ color: C.muted }}>
+            Tarjetas cortas generadas a partir de los mini quiz de cada clase. Vos calificás qué tan bien las sabías
+            y el sistema decide solo cuándo te las vuelve a mostrar — lo que dominás aparece cada vez más
+            espaciado, lo que te cuesta vuelve pronto.
+          </p>
+          <button
+            onClick={onOpen}
+            className="community-cta btn-tap inline-flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full"
+            style={{ background: `linear-gradient(90deg, ${C.emerald}, #79CF9C)`, color: '#0A0C10' }}
+          >
+            <Repeat size={16} /> Ir al repaso
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* Vitrina del planificador en la portada, mismo patrón que las otras secciones. */
+function PlannerSection({ onOpen }) {
+  return (
+    <section className="px-6 md:px-10 pb-16">
+      <div
+        className="relative overflow-hidden rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-start md:items-center gap-8"
+        style={{ background: `linear-gradient(135deg, ${C.surface} 0%, #171C26 100%)`, border: `1px solid ${C.border}` }}
+      >
+        <AmbientGlow variant="hero" />
+        <Crest color={C.gold} Icon={CalendarDays} size={72} pulse className="relative" />
+        <div className="flex-1 min-w-0 relative">
+          <div className="flex items-center gap-2 mb-3" style={{ color: C.gold }}>
+            <CalendarDays size={16} />
+            <span className="text-xs uppercase" style={{ letterSpacing: '0.25em' }}>Planificador de estudio</span>
+          </div>
+          <h2 style={{ fontFamily: FONT_DISPLAY, color: C.text, lineHeight: 1.25 }} className="text-2xl md:text-3xl mb-4 max-w-xl">
+            Decide hoy cuándo vas a estudiar cada cosa
+          </h2>
+          <p className="text-sm md:text-base max-w-xl mb-6" style={{ color: C.muted }}>
+            Organiza tu semana curso por curso — o agrega algo tuyo, fuera de Kingdom Level. Marca cada sesión como
+            hecha a medida que avanzas.
+          </p>
+          <button
+            onClick={onOpen}
+            className="community-cta btn-tap inline-flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full"
+            style={{ background: `linear-gradient(90deg, ${C.gold}, ${C.goldBright})`, color: '#0A0C10' }}
+          >
+            <CalendarDays size={16} /> Planificar mi semana
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function JoinProjectSection() {
   return (
     <section className="px-6 md:px-10 pb-16">
@@ -2017,7 +2288,7 @@ function CommunitySection() {
 
 /* ------------------------------ VISTA PRINCIPAL --------------------------- */
 
-function HomeView({ completedMap, onOpenCourse, onOpenNotesCourse }) {
+function HomeView({ completedMap, onOpenCourse, onOpenNotesCourse, onOpenFlashcards, onOpenPlanner }) {
   const totalTopics = courseData.reduce((a, c) => a + c.topics.length, 0);
   const totalClasses = courseData.reduce((a, c) => a + c.topics.reduce((ta, t) => ta + t.classes.length, 0), 0);
   return (
@@ -2032,6 +2303,12 @@ function HomeView({ completedMap, onOpenCourse, onOpenNotesCourse }) {
 
       <Reveal>
         <NotesSection onOpenCourse={onOpenNotesCourse} />
+      </Reveal>
+      <Reveal delay={80}>
+        <FlashcardsSection onOpen={onOpenFlashcards} />
+      </Reveal>
+      <Reveal delay={80}>
+        <PlannerSection onOpen={onOpenPlanner} />
       </Reveal>
       <Reveal delay={80}>
         <JoinProjectSection />
@@ -2626,6 +2903,704 @@ function LevelsView({ completedCount, completedMap, streak, unlockedBadges, onBa
   );
 }
 
+/* Tarjetas de repetición espaciada: vista general por curso + sesión de
+   repaso con volteo de tarjeta. El progreso (caja/fecha) es lo único que se
+   guarda entre visitas; la cola de la sesión en curso es solo local. */
+function FlashcardsView({ flashcardProgress, onRate, onBack }) {
+  const [session, setSession] = useState(null); // null = vista general
+
+  const today = todayStr();
+  const dueCards = ALL_FLASHCARDS.filter((card) => isCardDueToday(getCardProgress(flashcardProgress, card.id), today));
+
+  function startSession(cards) {
+    if (cards.length === 0) return;
+    const shuffled = [...cards].sort(() => Math.random() - 0.5);
+    setSession({ queue: shuffled, index: 0, showBack: false, total: shuffled.length, reviewedCount: 0, complete: false });
+  }
+
+  function flipCard() {
+    setSession((s) => ({ ...s, showBack: true }));
+  }
+
+  function handleRate(rating) {
+    const card = session.queue[session.index];
+    onRate(card.id, rating);
+
+    if (rating === 'again') {
+      const queue = [...session.queue];
+      const [item] = queue.splice(session.index, 1);
+      const insertAt = Math.min(queue.length, session.index + 3);
+      queue.splice(insertAt, 0, item);
+      setSession((s) => ({ ...s, queue, showBack: false }));
+      return;
+    }
+
+    setSession((s) => {
+      const reviewedCount = s.reviewedCount + 1;
+      if (s.index + 1 >= s.queue.length) {
+        return { ...s, complete: true, reviewedCount };
+      }
+      return { ...s, index: s.index + 1, showBack: false, reviewedCount };
+    });
+  }
+
+  // --- Pantalla de cierre de sesión ---
+  if (session && session.complete) {
+    return (
+      <div className="px-6 md:px-10 pb-20">
+        <div className="max-w-md mx-auto text-center mt-16 card-in">
+          <Crest color={C.emerald} Icon={Trophy} size={72} pulse />
+          <h2 style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-2xl mt-6 mb-2">
+            ¡Repaso completado!
+          </h2>
+          <p className="text-sm mb-8" style={{ color: C.muted }}>
+            Repasaste {session.reviewedCount} {session.reviewedCount === 1 ? 'tarjeta' : 'tarjetas'}.
+          </p>
+          <button
+            onClick={() => setSession(null)}
+            className="community-cta btn-tap inline-flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full"
+            style={{ background: `linear-gradient(90deg, ${C.emerald}, #79CF9C)`, color: '#0A0C10' }}
+          >
+            Volver al repaso
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Sesión de repaso activa (tarjeta con volteo) ---
+  if (session) {
+    const card = session.queue[session.index];
+    return (
+      <div className="px-6 md:px-10 pb-20">
+        <button
+          onClick={() => setSession(null)}
+          className="back-btn flex items-center gap-2 text-sm mb-6 mt-6"
+          style={{ color: C.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+        >
+          <ChevronLeft size={16} className="back-chevron" /> Salir del repaso
+        </button>
+
+        <div className="max-w-lg mx-auto">
+          <div className="flex items-center justify-between text-xs mb-3" style={{ color: C.mutedDim }}>
+            <span>{card.courseTitle} · {card.topicTitle}</span>
+            <span>{session.reviewedCount + 1}/{session.total}</span>
+          </div>
+          <div className="rounded-full mb-6" style={{ height: 4, background: C.border, overflow: 'hidden' }}>
+            <div className="rounded-full" style={{ height: 4, width: `${(session.reviewedCount / session.total) * 100}%`, background: card.courseColor, transition: 'width 0.4s ease' }} />
+          </div>
+
+          <div className="flashcard-scene" style={{ height: 260 }} onClick={() => !session.showBack && flipCard()}>
+            <div className={`flashcard-inner ${session.showBack ? 'flipped' : ''}`}>
+              <div className="flashcard-face" style={{ background: C.surface, border: `2px solid ${card.courseColor}`, cursor: session.showBack ? 'default' : 'pointer' }}>
+                <div>
+                  <span className="text-xs uppercase" style={{ color: card.courseColor, letterSpacing: '0.1em' }}>{card.topicTitle}</span>
+                  <p style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-lg mt-3">{card.front}</p>
+                  <p className="text-xs mt-5" style={{ color: C.mutedDim }}>Toca la tarjeta para ver la respuesta</p>
+                </div>
+              </div>
+              <div className="flashcard-face back" style={{ background: C.surface, border: `2px solid ${card.courseColor}` }}>
+                <p className="text-sm leading-relaxed" style={{ color: C.text, whiteSpace: 'pre-line' }}>{card.back}</p>
+              </div>
+            </div>
+          </div>
+
+          {session.showBack ? (
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <button onClick={() => handleRate('again')} className="flashcard-rate-btn text-sm px-4 py-2 rounded-full" style={{ background: 'transparent', border: '1px solid #B5495B', color: '#E08D95', cursor: 'pointer' }}>
+                Otra vez
+              </button>
+              <button onClick={() => handleRate('good')} className="flashcard-rate-btn text-sm px-4 py-2 rounded-full" style={{ background: 'transparent', border: `1px solid ${C.gold}`, color: C.gold, cursor: 'pointer' }}>
+                Bien
+              </button>
+              <button onClick={() => handleRate('easy')} className="flashcard-rate-btn text-sm px-4 py-2 rounded-full" style={{ background: 'transparent', border: `1px solid ${C.emerald}`, color: C.emerald, cursor: 'pointer' }}>
+                Fácil
+              </button>
+            </div>
+          ) : (
+            <p className="text-center text-xs mt-6" style={{ color: C.mutedDim }}>Pensá tu respuesta antes de tocar la tarjeta</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // --- Vista general: estadísticas y desglose por curso ---
+  return (
+    <div className="px-6 md:px-10 pb-20">
+      <button
+        onClick={onBack}
+        className="back-btn flex items-center gap-2 text-sm mb-8 mt-6"
+        style={{ color: C.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+      >
+        <ChevronLeft size={16} className="back-chevron" /> Volver al reino
+      </button>
+
+      <div className="flex flex-col md:flex-row gap-6 items-start mb-10 p-6 md:p-8 rounded-2xl" style={{ background: C.surface, border: `1px solid ${C.emerald}55` }}>
+        <Crest color={C.emerald} Icon={Repeat} size={78} pulse />
+        <div className="flex-1 min-w-0">
+          <span className="text-xs uppercase" style={{ color: C.emerald, letterSpacing: '0.2em' }}>Repaso espaciado</span>
+          <h2 style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-2xl md:text-3xl mt-2 mb-2">
+            {dueCards.length > 0 ? `Tienes ${dueCards.length} ${dueCards.length === 1 ? 'tarjeta' : 'tarjetas'} para hoy` : '¡Estás al día!'}
+          </h2>
+          <p className="text-sm md:text-base mb-4" style={{ color: C.muted }}>
+            Cada tarjeta sale de las preguntas de los mini quiz. Calificás qué tan bien la sabías y el sistema decide solo cuándo te la vuelve a mostrar: las que dominás aparecen cada vez más espaciadas, las que te cuestan vuelven pronto.
+          </p>
+          <button
+            onClick={() => startSession(dueCards)}
+            disabled={dueCards.length === 0}
+            className="community-cta btn-tap inline-flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full"
+            style={{
+              background: dueCards.length > 0 ? `linear-gradient(90deg, ${C.emerald}, #79CF9C)` : C.border,
+              color: dueCards.length > 0 ? '#0A0C10' : C.mutedDim,
+              cursor: dueCards.length > 0 ? 'pointer' : 'default',
+            }}
+          >
+            <Repeat size={16} /> {dueCards.length > 0 ? `Repasar todo (${dueCards.length})` : 'Nada pendiente por hoy'}
+          </button>
+        </div>
+      </div>
+
+      <h3 style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-lg mb-4">
+        Por curso
+      </h3>
+      <div className="flex flex-col gap-3">
+        {courseData.map((course, idx) => {
+          const cardsInCourse = ALL_FLASHCARDS.filter((c) => c.courseId === course.id);
+          const dueInCourse = cardsInCourse.filter((c) => isCardDueToday(getCardProgress(flashcardProgress, c.id), today));
+          return (
+            <button
+              key={course.id}
+              onClick={() => startSession(cardsInCourse)}
+              disabled={cardsInCourse.length === 0}
+              className="row-card flex items-center gap-4 p-4 rounded-xl text-left card-in"
+              style={{
+                background: C.surface,
+                border: `1px solid ${C.border}`,
+                cursor: cardsInCourse.length > 0 ? 'pointer' : 'default',
+                opacity: cardsInCourse.length > 0 ? 1 : 0.5,
+                animationDelay: `${idx * 60}ms`,
+                '--row-color': course.color,
+              }}
+            >
+              <Crest color={course.color} Icon={course.icon} size={44} />
+              <div className="flex-1 min-w-0">
+                <p style={{ color: C.text }} className="text-sm font-medium truncate">{course.title}</p>
+                <p style={{ color: C.mutedDim }} className="text-xs mt-1">
+                  {cardsInCourse.length === 0 ? 'Sin tarjetas todavía' : `${dueInCourse.length}/${cardsInCourse.length} para repasar`}
+                </p>
+              </div>
+              {cardsInCourse.length > 0 && <ArrowRight size={16} color={course.color} className="row-arrow shrink-0" />}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* Planificador de estudio semanal: organiza qué día vas a estudiar qué curso
+   (o algo propio, fuera de Kingdom Level, con "Otro"). Solo guarda las
+   sesiones planificadas; la navegación de semana es local a la vista. */
+
+function SessionCard({ session, onToggleDone, onDelete }) {
+  const course = session.courseId === 'custom' ? null : courseData.find((c) => c.id === session.courseId);
+  const color = course ? course.color : C.gold;
+  const Icon = course ? course.icon : BookOpen;
+  const title = course ? course.title : session.customTitle || 'Sesión de estudio';
+
+  return (
+    <div
+      className="session-card rounded-lg p-2 flex items-start gap-2"
+      style={{ background: `${color}14`, border: `1px solid ${color}44`, opacity: session.done ? 0.55 : 1, '--session-color': color }}
+    >
+      <button
+        onClick={onToggleDone}
+        className="shrink-0"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 1 }}
+        title={session.done ? 'Marcar como pendiente' : 'Marcar como estudiada'}
+      >
+        {session.done ? <CheckCircle2 size={15} color={color} className="check-pop" /> : <Circle size={15} color={color} />}
+      </button>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium flex items-center gap-1" style={{ color: C.text, textDecoration: session.done ? 'line-through' : 'none' }}>
+          <Icon size={11} color={color} className="shrink-0" /> <span className="truncate">{title}</span>
+        </p>
+        {session.time && <p className="text-xs mt-0.5" style={{ color: C.mutedDim }}>{session.time}</p>}
+        {session.note && <p className="text-xs mt-0.5 leading-snug" style={{ color: C.mutedDim }}>{session.note}</p>}
+      </div>
+      <button onClick={onDelete} className="shrink-0" style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.mutedDim, padding: 0 }} title="Eliminar">
+        <X size={12} />
+      </button>
+    </div>
+  );
+}
+
+function AddSessionForm({ onSubmit, onCancel }) {
+  const [courseId, setCourseId] = useState(courseData[0].id);
+  const [customTitle, setCustomTitle] = useState('');
+  const [time, setTime] = useState('');
+  const [note, setNote] = useState('');
+
+  function submit() {
+    if (courseId === 'custom' && !customTitle.trim()) return; // necesita al menos un título si es personalizado
+    onSubmit({ courseId, customTitle: customTitle.trim(), time, note: note.trim() });
+  }
+
+  return (
+    <div className="planner-form-in flex flex-col gap-3 p-3 rounded-xl" style={{ background: '#0F131A', border: `1px solid ${C.border}` }}>
+      <div>
+        <p className="text-xs mb-2" style={{ color: C.mutedDim }}>¿Qué vas a estudiar?</p>
+        <div className="flex flex-wrap gap-1.5">
+          {courseData.map((c) => {
+            const selected = courseId === c.id;
+            const CourseIcon = c.icon;
+            return (
+              <button
+                key={c.id}
+                onClick={() => setCourseId(c.id)}
+                className="planner-course-chip flex items-center gap-1.5 rounded-full pl-2 pr-2.5 py-1.5"
+                style={{
+                  background: selected ? `${c.color}22` : 'transparent',
+                  border: `1px solid ${selected ? c.color : C.border}`,
+                  color: selected ? c.color : C.muted,
+                }}
+                title={c.title}
+              >
+                <CourseIcon size={12} className="shrink-0" />
+                <span className="text-xs truncate" style={{ maxWidth: 96 }}>{c.title}</span>
+              </button>
+            );
+          })}
+          <button
+            onClick={() => setCourseId('custom')}
+            className="planner-course-chip flex items-center gap-1.5 rounded-full pl-2 pr-2.5 py-1.5"
+            style={{
+              background: courseId === 'custom' ? `${C.gold}22` : 'transparent',
+              border: `1px solid ${courseId === 'custom' ? C.gold : C.border}`,
+              color: courseId === 'custom' ? C.gold : C.muted,
+            }}
+          >
+            <PenLine size={12} className="shrink-0" />
+            <span className="text-xs">Otro</span>
+          </button>
+        </div>
+      </div>
+
+      {courseId === 'custom' && (
+        <div>
+          <p className="text-xs mb-1" style={{ color: C.mutedDim }}>Título</p>
+          <input
+            type="text"
+            value={customTitle}
+            onChange={(e) => setCustomTitle(e.target.value)}
+            placeholder="¿Qué vas a estudiar?"
+            className="planner-input text-xs w-full"
+            autoFocus
+          />
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <p className="text-xs mb-1" style={{ color: C.mutedDim }}>Hora (opcional)</p>
+          <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="planner-input text-xs w-full" />
+        </div>
+        <div>
+          <p className="text-xs mb-1" style={{ color: C.mutedDim }}>Nota (opcional)</p>
+          <input
+            type="text"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Ej: tema 3"
+            className="planner-input text-xs w-full"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mt-1">
+        <button
+          onClick={submit}
+          className="planner-save-btn btn-tap text-xs px-4 py-2 rounded-full"
+          style={{ background: `linear-gradient(90deg, ${C.gold}, ${C.goldBright})`, color: '#0A0C10', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+        >
+          Guardar sesión
+        </button>
+        <button onClick={onCancel} className="text-xs px-4 py-2 rounded-full" style={{ background: 'transparent', color: C.mutedDim, border: `1px solid ${C.border}`, cursor: 'pointer' }}>
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PlannerView({ sessions, onAddSession, onToggleDone, onDeleteSession, onBack }) {
+  const [viewMode, setViewMode] = useState('month'); // 'month' | 'week'
+  const [monthCursor, setMonthCursor] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+  const [selectedDate, setSelectedDate] = useState(() => formatDateKey(new Date()));
+  const [addingForDay, setAddingForDay] = useState(null);
+
+  const todayKeyValue = formatDateKey(new Date());
+
+  function handleSubmit(dateKey, data) {
+    onAddSession({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      date: dateKey,
+      done: false,
+      ...data,
+    });
+    setAddingForDay(null);
+  }
+
+  // --- Vista de mes (grilla tipo Google Calendar) ---
+  const monthDays = useMemo(() => getMonthGridDays(monthCursor), [monthCursor]);
+  const monthLabel = `${PLANNER_MONTH_LABELS[monthCursor.getMonth()].charAt(0).toUpperCase()}${PLANNER_MONTH_LABELS[monthCursor.getMonth()].slice(1)} ${monthCursor.getFullYear()}`;
+  const sessionsThisMonth = sessions.filter((s) => {
+    const [y, m] = s.date.split('-').map(Number);
+    return y === monthCursor.getFullYear() && m - 1 === monthCursor.getMonth();
+  });
+  const doneThisMonth = sessionsThisMonth.filter((s) => s.done).length;
+
+  // --- Vista de semana (columnas por día) ---
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const weekEnd = weekDays[6];
+  const weekRangeLabel =
+    weekStart.getMonth() === weekEnd.getMonth()
+      ? `${weekStart.getDate()} – ${weekEnd.getDate()} de ${PLANNER_MONTH_LABELS[weekStart.getMonth()]}`
+      : `${weekStart.getDate()} de ${PLANNER_MONTH_LABELS[weekStart.getMonth()]} – ${weekEnd.getDate()} de ${PLANNER_MONTH_LABELS[weekEnd.getMonth()]}`;
+  const sessionsThisWeek = sessions.filter((s) => weekDays.some((d) => formatDateKey(d) === s.date));
+  const doneThisWeek = sessionsThisWeek.filter((s) => s.done).length;
+
+  const selectedDateObj = new Date(`${selectedDate}T00:00:00`);
+  const selectedDaySessions = sessions.filter((s) => s.date === selectedDate);
+
+  const headerCount = viewMode === 'month' ? { total: sessionsThisMonth.length, done: doneThisMonth, label: 'este mes' } : { total: sessionsThisWeek.length, done: doneThisWeek, label: 'esta semana' };
+
+  return (
+    <div className="px-6 md:px-10 pb-20">
+      <button
+        onClick={onBack}
+        className="back-btn flex items-center gap-2 text-sm mb-8 mt-6"
+        style={{ color: C.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+      >
+        <ChevronLeft size={16} className="back-chevron" /> Volver al reino
+      </button>
+
+      <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-8 p-6 md:p-8 rounded-2xl" style={{ background: C.surface, border: `1px solid ${C.gold}55` }}>
+        <Crest color={C.gold} Icon={CalendarDays} size={64} pulse />
+        <div className="flex-1 min-w-0">
+          <span className="text-xs uppercase" style={{ color: C.gold, letterSpacing: '0.2em' }}>Planificador de estudio</span>
+          <h2 style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-xl md:text-2xl mt-2 mb-2">
+            Organiza tu tiempo
+          </h2>
+          <p className="text-sm" style={{ color: C.muted }}>
+            {headerCount.total === 0 ? `Todavía no planificaste nada para ${headerCount.label}.` : `${headerCount.done}/${headerCount.total} sesiones completadas ${headerCount.label}.`}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => (viewMode === 'month' ? setMonthCursor((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1)) : setWeekStart((w) => addDays(w, -7)))}
+            className="pomodoro-btn flex items-center justify-center rounded-full"
+            style={{ width: 30, height: 30, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim, cursor: 'pointer' }}
+            title={viewMode === 'month' ? 'Mes anterior' : 'Semana anterior'}
+          >
+            <ChevronLeft size={14} />
+          </button>
+          <button
+            onClick={() => {
+              const now = new Date();
+              setMonthCursor(new Date(now.getFullYear(), now.getMonth(), 1));
+              setWeekStart(startOfWeek(now));
+              setSelectedDate(formatDateKey(now));
+            }}
+            className="text-xs px-3 py-1.5 rounded-full"
+            style={{ background: C.surface, border: `1px solid ${C.border}`, color: C.muted, cursor: 'pointer' }}
+          >
+            Hoy
+          </button>
+          <button
+            onClick={() => (viewMode === 'month' ? setMonthCursor((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1)) : setWeekStart((w) => addDays(w, 7)))}
+            className="pomodoro-btn flex items-center justify-center rounded-full"
+            style={{ width: 30, height: 30, background: 'transparent', border: `1px solid ${C.border}`, color: C.mutedDim, cursor: 'pointer' }}
+            title={viewMode === 'month' ? 'Mes siguiente' : 'Semana siguiente'}
+          >
+            <ChevronRight size={14} />
+          </button>
+          <span className="text-sm ml-2" style={{ color: C.text }}>{viewMode === 'month' ? monthLabel : weekRangeLabel}</span>
+        </div>
+
+        <div className="flex items-center gap-1 rounded-full p-1" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+          <button
+            onClick={() => setViewMode('month')}
+            className="text-xs px-3 py-1.5 rounded-full"
+            style={{ background: viewMode === 'month' ? C.gold : 'transparent', color: viewMode === 'month' ? '#0A0C10' : C.muted, border: 'none', cursor: 'pointer', fontWeight: viewMode === 'month' ? 600 : 400 }}
+          >
+            Mes
+          </button>
+          <button
+            onClick={() => setViewMode('week')}
+            className="text-xs px-3 py-1.5 rounded-full"
+            style={{ background: viewMode === 'week' ? C.gold : 'transparent', color: viewMode === 'week' ? '#0A0C10' : C.muted, border: 'none', cursor: 'pointer', fontWeight: viewMode === 'week' ? 600 : 400 }}
+          >
+            Semana
+          </button>
+        </div>
+      </div>
+
+      {viewMode === 'month' ? (
+        <>
+          {/* Grilla mensual: 7 columnas fijas, como Google Calendar */}
+          <div className="grid grid-cols-7 gap-1 md:gap-2 mb-2">
+            {PLANNER_WEEKDAY_LABELS.map((lbl) => (
+              <div key={lbl} className="text-center text-xs" style={{ color: C.mutedDim }}>{lbl}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1 md:gap-2">
+            {monthDays.map((d, i) => {
+              const dateKey = formatDateKey(d);
+              const inMonth = d.getMonth() === monthCursor.getMonth();
+              const isToday = dateKey === todayKeyValue;
+              const isSelected = dateKey === selectedDate;
+              const daySessions = sessions.filter((s) => s.date === dateKey);
+              const visible = daySessions.slice(0, 2);
+              const extra = daySessions.length - visible.length;
+              return (
+                <button
+                  key={dateKey}
+                  onClick={() => setSelectedDate(dateKey)}
+                  className="month-cell card-in flex flex-col items-start p-1.5 md:p-2 rounded-lg text-left"
+                  style={{
+                    minHeight: 68,
+                    background: isSelected ? `${C.gold}14` : C.surface,
+                    border: `1px solid ${isSelected ? C.gold : isToday ? `${C.gold}88` : C.border}`,
+                    boxShadow: isSelected ? `0 0 0 1px ${C.gold}33` : 'none',
+                    opacity: inMonth ? 1 : 0.4,
+                    cursor: 'pointer',
+                    animationDelay: `${i * 8}ms`,
+                  }}
+                >
+                  {isToday ? (
+                    <span className="month-today-badge text-xs">{d.getDate()}</span>
+                  ) : (
+                    <span className="text-xs" style={{ color: C.text }}>{d.getDate()}</span>
+                  )}
+                  <div className="flex flex-col gap-1 mt-1.5 w-full">
+                    {visible.map((s) => {
+                      const course = s.courseId === 'custom' ? null : courseData.find((c) => c.id === s.courseId);
+                      const color = course ? course.color : C.gold;
+                      const title = course ? course.title : s.customTitle || 'Estudio';
+                      return (
+                        <span
+                          key={s.id}
+                          className="month-chip text-xs truncate"
+                          style={{
+                            background: `${color}20`,
+                            borderLeft: `2px solid ${color}`,
+                            color,
+                            padding: '2px 6px',
+                            borderRadius: '0 6px 6px 0',
+                            textDecoration: s.done ? 'line-through' : 'none',
+                          }}
+                        >
+                          {title}
+                        </span>
+                      );
+                    })}
+                    {extra > 0 && <span className="text-xs" style={{ color: C.mutedDim }}>+{extra} más</span>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Panel del día seleccionado */}
+          <div className="mt-6 p-4 md:p-5 rounded-xl" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-semibold" style={{ color: C.text }}>{formatLongDate(selectedDateObj)}</span>
+              {selectedDate === todayKeyValue && <span className="text-xs" style={{ color: C.gold }}>Hoy</span>}
+            </div>
+            <div className="flex flex-col gap-2 mb-3">
+              {selectedDaySessions.length === 0 && (
+                <p className="text-xs" style={{ color: C.mutedDim }}>Nada planificado para este día todavía.</p>
+              )}
+              {selectedDaySessions.map((session) => (
+                <SessionCard
+                  key={session.id}
+                  session={session}
+                  onToggleDone={() => onToggleDone(session.id)}
+                  onDelete={() => onDeleteSession(session.id)}
+                />
+              ))}
+            </div>
+            {addingForDay === selectedDate ? (
+              <AddSessionForm onSubmit={(data) => handleSubmit(selectedDate, data)} onCancel={() => setAddingForDay(null)} />
+            ) : (
+              <button
+                onClick={() => setAddingForDay(selectedDate)}
+                className="flex items-center gap-1 text-xs px-3 py-2 rounded-lg"
+                style={{ background: 'transparent', border: `1px dashed ${C.border}`, color: C.mutedDim, cursor: 'pointer' }}
+              >
+                <Plus size={12} /> Agregar sesión
+              </button>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
+          {weekDays.map((d, i) => {
+            const dateKey = formatDateKey(d);
+            const isToday = dateKey === todayKeyValue;
+            const daySessions = sessions.filter((s) => s.date === dateKey);
+            return (
+              <div
+                key={dateKey}
+                className="rounded-xl p-3 flex flex-col gap-2 card-in"
+                style={{ background: C.surface, border: `1px solid ${isToday ? C.gold : C.border}`, minHeight: 170, animationDelay: `${i * 60}ms` }}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold" style={{ color: isToday ? C.gold : C.text }}>
+                    {PLANNER_WEEKDAY_LABELS[i]} {d.getDate()}
+                  </span>
+                  {isToday && <span className="text-xs" style={{ color: C.gold }}>Hoy</span>}
+                </div>
+
+                <div className="flex flex-col gap-2 flex-1">
+                  {daySessions.map((session) => (
+                    <SessionCard
+                      key={session.id}
+                      session={session}
+                      onToggleDone={() => onToggleDone(session.id)}
+                      onDelete={() => onDeleteSession(session.id)}
+                    />
+                  ))}
+                </div>
+
+                {addingForDay === dateKey ? (
+                  <AddSessionForm onSubmit={(data) => handleSubmit(dateKey, data)} onCancel={() => setAddingForDay(null)} />
+                ) : (
+                  <button
+                    onClick={() => setAddingForDay(dateKey)}
+                    className="flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg"
+                    style={{ background: 'transparent', border: `1px dashed ${C.border}`, color: C.mutedDim, cursor: 'pointer' }}
+                  >
+                    <Plus size={12} /> Agregar
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* Buscador del reino: un ícono compacto en el header que despliega un panel
+   con resultados en vivo mientras escribís. La búsqueda en sí es local a
+   este componente (no necesita persistir ni sobrevivir a la navegación). */
+function SearchWidget({ onNavigate }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const inputRef = useRef(null);
+
+  const results = useMemo(() => searchKingdom(query), [query]);
+
+  function handleOpen() {
+    setOpen(true);
+    setTimeout(() => inputRef.current && inputRef.current.focus(), 50);
+  }
+  function handleClose() {
+    setOpen(false);
+    setQuery('');
+  }
+  function handleSelect(result) {
+    onNavigate(result);
+    handleClose();
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => (open ? handleClose() : handleOpen())}
+        className="pomodoro-pill flex items-center gap-2 rounded-full px-3 py-2"
+        style={{ background: C.surface, border: `1px solid ${open ? C.gold : C.border}`, cursor: 'pointer' }}
+        title="Buscar en el reino"
+      >
+        <Search size={16} color={open ? C.gold : C.muted} />
+      </button>
+
+      {open && (
+        <>
+          <div className="search-backdrop" onClick={handleClose} />
+          <div
+            className="planner-form-in rounded-2xl p-3"
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 10px)',
+              right: 0,
+              width: 280,
+              maxWidth: '85vw',
+              background: C.surface,
+              border: `1px solid ${C.gold}`,
+              boxShadow: `0 16px 40px -14px ${C.gold}66`,
+              zIndex: 40,
+            }}
+          >
+            <div className="flex items-center gap-2 rounded-xl px-3 py-2 mb-2" style={{ background: '#0F131A', border: `1px solid ${C.border}` }}>
+              <Search size={14} color={C.mutedDim} className="shrink-0" />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Escape' && handleClose()}
+                placeholder="Busca un curso, tema, clase o apunte…"
+                className="search-input text-sm flex-1"
+              />
+              {query && (
+                <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.mutedDim, padding: 0 }}>
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1" style={{ maxHeight: 320, overflowY: 'auto' }}>
+              {query.trim() === '' && (
+                <p className="text-xs text-center py-4" style={{ color: C.mutedDim }}>Escribe para buscar en todo el reino.</p>
+              )}
+              {query.trim() !== '' && results.length === 0 && (
+                <p className="text-xs text-center py-4" style={{ color: C.mutedDim }}>No encontramos nada con &quot;{query}&quot;.</p>
+              )}
+              {results.map((r) => {
+                const Icon = r.icon;
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => handleSelect(r)}
+                    className="search-result-row flex items-center gap-2 p-2 rounded-lg text-left"
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', width: '100%' }}
+                  >
+                    <div className="flex items-center justify-center rounded-lg shrink-0" style={{ width: 28, height: 28, background: `${r.color}22` }}>
+                      <Icon size={13} color={r.color} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium truncate" style={{ color: C.text }}>{r.title}</p>
+                      <p className="text-xs truncate" style={{ color: C.mutedDim }}>{r.subtitle}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ------------------------------ POMODORO ---------------------------------- */
 /* Temporizador de estudio global: vive en el componente principal (App), no
    dentro de ninguna vista, así que cambiar de clase, tema o curso NUNCA lo
@@ -3000,6 +3975,100 @@ export default function KingdomLevel() {
     return () => clearTimeout(t);
   }, [pomodoroFocusMinutes, pomodoroBreakMinutes, pomodoroSettingsLoaded]);
 
+  // --- Repaso espaciado (flashcards) --------------------------------------
+  // Solo se guarda el progreso por tarjeta (caja + próxima fecha), en su
+  // propia clave. La cola de una sesión de repaso es local a FlashcardsView.
+  const FLASHCARDS_KEY = 'kingdomlevel-flashcards';
+  const [flashcardProgress, setFlashcardProgress] = useState({});
+  const [flashcardsLoaded, setFlashcardsLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await window.storage.get(FLASHCARDS_KEY, false);
+        if (!cancelled && result && result.value) {
+          const parsed = JSON.parse(result.value);
+          if (parsed && typeof parsed === 'object') setFlashcardProgress(parsed);
+        }
+      } catch (err) {
+        // Primera visita: todas las tarjetas arrancan pendientes.
+      } finally {
+        if (!cancelled) setFlashcardsLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!flashcardsLoaded) return;
+    const t = setTimeout(() => {
+      (async () => {
+        try {
+          await window.storage.set(FLASHCARDS_KEY, JSON.stringify(flashcardProgress), false);
+        } catch (err) {
+          // Sin bloquear la experiencia; se reintenta con el próximo cambio.
+        }
+      })();
+    }, 500);
+    return () => clearTimeout(t);
+  }, [flashcardProgress, flashcardsLoaded]);
+
+  function rateFlashcard(cardId, rating) {
+    setFlashcardProgress((prev) => ({ ...prev, [cardId]: nextCardProgress(getCardProgress(prev, cardId), rating) }));
+  }
+
+  // --- Planificador de estudio ---------------------------------------------
+  const PLANNER_KEY = 'kingdomlevel-planner';
+  const [plannerSessions, setPlannerSessions] = useState([]);
+  const [plannerLoaded, setPlannerLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await window.storage.get(PLANNER_KEY, false);
+        if (!cancelled && result && result.value) {
+          const parsed = JSON.parse(result.value);
+          if (Array.isArray(parsed)) setPlannerSessions(parsed);
+        }
+      } catch (err) {
+        // Primera visita: arrancamos sin nada planificado.
+      } finally {
+        if (!cancelled) setPlannerLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!plannerLoaded) return;
+    const t = setTimeout(() => {
+      (async () => {
+        try {
+          await window.storage.set(PLANNER_KEY, JSON.stringify(plannerSessions), false);
+        } catch (err) {
+          // Sin bloquear la experiencia; se reintenta con el próximo cambio.
+        }
+      })();
+    }, 500);
+    return () => clearTimeout(t);
+  }, [plannerSessions, plannerLoaded]);
+
+  function addPlannerSession(session) {
+    setPlannerSessions((prev) => [...prev, session]);
+  }
+  function togglePlannerSessionDone(id) {
+    setPlannerSessions((prev) => prev.map((s) => (s.id === id ? { ...s, done: !s.done } : s)));
+  }
+  function deletePlannerSession(id) {
+    setPlannerSessions((prev) => prev.filter((s) => s.id !== id));
+  }
+
   // El "tick" del reloj: baja un segundo por vez mientras esté corriendo.
   useEffect(() => {
     if (!pomodoroRunning) return undefined;
@@ -3211,6 +4280,12 @@ export default function KingdomLevel() {
   function openLevels() {
     goTo({ view: 'levels', courseId: null, topicId: null, classId: null, notesCourseId: null, notesTopicId: null });
   }
+  function openFlashcards() {
+    goTo({ view: 'flashcards', courseId: null, topicId: null, classId: null, notesCourseId: null, notesTopicId: null });
+  }
+  function openPlanner() {
+    goTo({ view: 'planner', courseId: null, topicId: null, classId: null, notesCourseId: null, notesTopicId: null });
+  }
   function openCourse(id) {
     goTo({ view: 'course', courseId: id, topicId: null, classId: null, notesCourseId: null, notesTopicId: null });
   }
@@ -3243,6 +4318,13 @@ export default function KingdomLevel() {
   }
   function openNotesTopic(cId, tId) {
     goTo({ view: 'notesTopic', courseId: null, topicId: null, classId: null, notesCourseId: cId, notesTopicId: tId });
+  }
+
+  function handleSearchNavigate(result) {
+    if (result.type === 'course') openCourse(result.courseId);
+    else if (result.type === 'topic') openTopic(result.courseId, result.topicId);
+    else if (result.type === 'class') openClass(result.courseId, result.topicId, result.classId);
+    else if (result.type === 'notes') openNotesTopic(result.courseId, result.topicId);
   }
 
   return (
@@ -3454,6 +4536,87 @@ export default function KingdomLevel() {
         .quiz-option:not(:disabled):hover { border-color: ${C.gold} !important; transform: translateX(2px); }
         .quiz-option:not(:disabled):active { transform: translateX(1px) scale(0.99); }
 
+        /* Tarjeta de repaso con volteo 3D */
+        .flashcard-scene { perspective: 1200px; width: 100%; }
+        .flashcard-inner {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          transition: transform 0.5s cubic-bezier(.4,.2,.2,1);
+          transform-style: preserve-3d;
+        }
+        .flashcard-inner.flipped { transform: rotateY(180deg); }
+        .flashcard-face {
+          position: absolute;
+          inset: 0;
+          backface-visibility: hidden;
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 28px;
+          text-align: center;
+        }
+        .flashcard-face.back { transform: rotateY(180deg); overflow-y: auto; }
+        .flashcard-rate-btn { transition: transform 0.15s ease, filter 0.15s ease; }
+        .flashcard-rate-btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .flashcard-rate-btn:active { transform: translateY(0) scale(0.96); }
+
+        /* Planificador de estudio */
+        .planner-input {
+          background: ${C.surface};
+          border: 1px solid ${C.border};
+          border-radius: 8px;
+          padding: 6px 10px;
+          color: ${C.text};
+          outline: none;
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .planner-input::placeholder { color: ${C.mutedDim}; }
+        .planner-input:focus { border-color: ${C.gold}; box-shadow: 0 0 0 3px ${C.gold}22; }
+        .planner-input[type='time']::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+
+        .planner-course-chip { transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease; cursor: pointer; }
+        .planner-course-chip:hover { transform: translateY(-1px); border-color: ${C.gold} !important; }
+        .planner-course-chip:active { transform: translateY(0) scale(0.96); }
+
+        .planner-save-btn { transition: transform 0.15s ease, filter 0.15s ease; }
+        .planner-save-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+        .planner-save-btn:active { transform: translateY(0) scale(0.97); }
+
+        @keyframes plannerFormIn {
+          from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .planner-form-in { animation: plannerFormIn 0.25s cubic-bezier(.2,.8,.2,1) both; }
+
+        .month-cell { transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease; }
+        .month-cell:hover { transform: translateY(-2px); box-shadow: 0 10px 22px -12px rgba(0,0,0,0.6); }
+        .month-cell:active { transform: translateY(0) scale(0.98); }
+        .month-today-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          border-radius: 9999px;
+          background: ${C.gold};
+          color: #0A0C10;
+          font-weight: 700;
+        }
+        .month-chip { transition: transform 0.12s ease; }
+
+        .session-card { transition: transform 0.15s ease, border-color 0.15s ease; }
+        .session-card:hover { transform: translateX(2px); border-color: var(--session-color, ${C.border}) !important; }
+
+        /* Buscador del reino */
+        .search-backdrop { position: fixed; inset: 0; z-index: 35; background: transparent; cursor: default; }
+        .search-input { background: transparent; border: none; outline: none; color: ${C.text}; }
+        .search-input::placeholder { color: ${C.mutedDim}; }
+        .search-result-row { transition: background 0.15s ease, transform 0.1s ease; }
+        .search-result-row:hover { background: ${C.border}; transform: translateX(2px); }
+        .search-result-row:active { transform: translateX(1px) scale(0.99); }
+
         /* Cuaderno personal del estudiante, dentro de cada clase */
         .personal-notebook {
           background-color: #12151b;
@@ -3647,7 +4810,8 @@ export default function KingdomLevel() {
           .intro-stats-in,
           .reveal,
           .nav-transition,
-          .pomodoro-flash {
+          .pomodoro-flash,
+          .planner-form-in {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
@@ -3698,11 +4862,17 @@ export default function KingdomLevel() {
           sessionsDone: pomodoroSessionsDone,
           open: pomodoroOpen,
           flash: pomodoroFlash,
+          focusMinutes: pomodoroFocusMinutes,
+          breakMinutes: pomodoroBreakMinutes,
         }}
         onPomodoroToggleOpen={togglePomodoroOpen}
         onPomodoroToggleRun={togglePomodoroRun}
         onPomodoroReset={resetPomodoroPhase}
         onPomodoroSkip={skipPomodoroPhase}
+        onPomodoroChangeFocus={changePomodoroFocusMinutes}
+        onPomodoroChangeBreak={changePomodoroBreakMinutes}
+        onSearchNavigate={handleSearchNavigate}
+        onOpenFlashcards={openFlashcards}
       />
 
       <div
@@ -3710,7 +4880,7 @@ export default function KingdomLevel() {
         className={`nav-transition nav-${direction}`}
       >
         {view === 'home' && (
-          <HomeView completedMap={completedMap} onOpenCourse={openCourse} onOpenNotesCourse={openNotesCourse} />
+          <HomeView completedMap={completedMap} onOpenCourse={openCourse} onOpenNotesCourse={openNotesCourse} onOpenFlashcards={openFlashcards} onOpenPlanner={openPlanner} />
         )}
 
         {view === 'levels' && (
@@ -3721,6 +4891,20 @@ export default function KingdomLevel() {
             unlockedBadges={unlockedBadges}
             onBack={goHome}
             onResetProgress={resetProgress}
+          />
+        )}
+
+        {view === 'flashcards' && (
+          <FlashcardsView flashcardProgress={flashcardProgress} onRate={rateFlashcard} onBack={goHome} />
+        )}
+
+        {view === 'planner' && (
+          <PlannerView
+            sessions={plannerSessions}
+            onAddSession={addPlannerSession}
+            onToggleDone={togglePlannerSessionDone}
+            onDeleteSession={deletePlannerSession}
+            onBack={goHome}
           />
         )}
 
