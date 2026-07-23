@@ -87,6 +87,7 @@ import {
   Circle,
   X,
   Search,
+  Maximize2,
   Timer,
   Pause,
   RotateCcw,
@@ -128,9 +129,24 @@ function darken(hex, amount = 0.35) {
 const DEMO_VIDEO_ID = 'jNQXAC9IVRw'; // ← reemplaza esto por tus videos de clase reales
 const INTRO_VIDEO_ID = 'jNQXAC9IVRw'; // ← reemplaza esto por tu video de presentación del proyecto
 
-// Carpeta de Drive (u otro servicio) donde guardas los apuntes reales.
-// Puedes usar el mismo link para todos los temas, o poner uno distinto por tema.
-const NOTES_LINK_PLACEHOLDER = 'https://drive.google.com/drive/folders/TU-CARPETA-DE-APUNTES-AQUI';
+// Link para "Compartir" de un PDF en Google Drive (el que te da Drive al hacer
+// clic en Compartir → Copiar enlace). Puedes usar el mismo PDF para todos los
+// temas, o poner uno distinto por tema — el visor lo convierte solo al
+// formato que se puede mostrar embebido dentro de la página.
+const SE_C2 = 'https://drive.google.com/file/d/1SOzZKbzuGkqwJnlkK372-P2YeM6ielD2/view?usp=sharing';
+const NOTES_PDF_PLACEHOLDER = 'https://drive.google.com/file/d/1ndDMN-wjG71j0zi9wU1fkBIYPqVlOa51/view?usp=sharing';
+
+// Convierte un link normal de "Compartir" de Google Drive
+// (https://drive.google.com/file/d/ID/view?usp=sharing) en el link especial
+// que Drive permite mostrar embebido dentro de un <iframe>. Si el link no
+// tiene el formato esperado, devuelve null y la vista muestra un aviso en
+// vez de romperse.
+function driveShareLinkToEmbedUrl(shareUrl) {
+  if (!shareUrl) return null;
+  const match = shareUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const fileId = match ? match[1] : null;
+  return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : null;
+}
 
 // Link de invitación a tu grupo de WhatsApp. Lo obtienes desde:
 // WhatsApp → tu grupo → Datos del grupo → Invitar mediante enlace → Copiar enlace.
@@ -210,7 +226,7 @@ const courseData = [
             'Cómo calcular el punto de equilibrio de mercado paso a paso.',
             'Glosario de términos básicos de microeconomía.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -229,7 +245,7 @@ const courseData = [
             'Ejercicios resueltos de cálculo de elasticidad.',
             'Tabla resumen de cómo interpretar cada resultado.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -248,7 +264,7 @@ const courseData = [
             'Ejercicios de maximización de utilidad.',
             'Errores comunes al interpretar las preferencias del consumidor.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -267,7 +283,7 @@ const courseData = [
             'Ejercicios resueltos de cálculo de interés.',
             'Fórmulas clave listas para consulta rápida.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: SE_C2,
         },
       },
       {
@@ -286,7 +302,7 @@ const courseData = [
             'Qué es la capitalización continua y cuándo se usa.',
             'Tabla comparativa de tasas nominales vs. efectivas.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -306,7 +322,7 @@ const courseData = [
             'Cuándo conviene usar cada método según el problema.',
             'Ejemplos aplicados a decisiones de inversión reales.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -325,7 +341,7 @@ const courseData = [
             'Ejercicios resueltos de cálculo de cuotas.',
             'Plantilla de tabla de amortización lista para usar.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -344,7 +360,7 @@ const courseData = [
             'Ejercicios resueltos de evaluación de proyectos.',
             'Criterios para decidir entre varios proyectos de inversión.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
     ],
@@ -416,7 +432,7 @@ const courseData = [
             'Ejercicios resueltos de lógica de programación.',
             'Glosario de términos usados en esta primera parte del curso.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -436,7 +452,7 @@ const courseData = [
             'Cómo declarar y llamar funciones con parámetros y retorno.',
             'Ejercicios prácticos para combinar condicionales, bucles y funciones.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
     ],
@@ -508,7 +524,7 @@ const courseData = [
             'Diagramas de memoria para visualizar cada estructura.',
             'Ejercicios de complejidad para operaciones básicas.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -528,7 +544,7 @@ const courseData = [
             'Tabla resumen de complejidad Big O de cada algoritmo visto.',
             'Ejercicios propuestos con solución al final del documento.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
     ],
@@ -599,7 +615,7 @@ const courseData = [
             'Formas normales (1FN, 2FN, 3FN) paso a paso.',
             'Ejercicio guiado: modelar una base de datos desde cero.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -619,7 +635,7 @@ const courseData = [
             'Subconsultas correlacionadas vs no correlacionadas.',
             'Buenas prácticas de índices y cómo leer un plan de ejecución.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
     ],
@@ -690,7 +706,7 @@ const courseData = [
             'Polimorfismo explicado con ejemplos de código.',
             'Diagrama de clases UML simplificado.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -709,7 +725,7 @@ const courseData = [
             'Patrones de diseño básicos: Singleton, Factory y Observer.',
             'Casos de uso reales de cada patrón visto.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
     ],
@@ -770,7 +786,7 @@ const courseData = [
             'Tabla de clases de direcciones IP y máscaras comunes.',
             'Glosario de términos de redes usados en el curso.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -789,7 +805,7 @@ const courseData = [
             'Cifrado simétrico vs asimétrico, en términos simples.',
             'Checklist de buenas prácticas de seguridad en redes.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
     ],
@@ -855,7 +871,7 @@ const courseData = [
             'Plantilla de product backlog lista para usar.',
             'Comparación rápida entre metodologías ágiles y tradicionales.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
       {
@@ -874,7 +890,7 @@ const courseData = [
             'Tipos de pruebas: unitarias, de integración y de aceptación.',
             'Checklist de control de calidad antes de entregar un proyecto.',
           ],
-          notesLink: NOTES_LINK_PLACEHOLDER,
+          notesLink: NOTES_PDF_PLACEHOLDER,
         },
       },
     ],
@@ -1343,6 +1359,64 @@ function searchKingdom(query) {
   return SEARCH_INDEX.filter((item) => item.title.toLowerCase().includes(q) || item.searchText.includes(q)).slice(0, 20);
 }
 
+/* --------------------------- TIEMPO DE ESTUDIO ------------------------------ */
+/* Cada vez que una sesión de enfoque del Pomodoro termina de verdad (no si se
+   salta a mano), se guarda un registro: { date, minutes }. A partir de esa
+   lista, calculamos cuánto se estudió hoy, esta semana, este mes, y el
+   detalle día por día para el gráfico de barras. */
+
+function formatStudyMinutes(total) {
+  if (total <= 0) return '0 min';
+  if (total < 60) return `${total} min`;
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return m === 0 ? `${h} h` : `${h} h ${m} min`;
+}
+
+function computeStudyStats(studyLog) {
+  const today = todayStr();
+  const weekDayKeys = Array.from({ length: 7 }, (_, i) => formatDateKey(addDays(startOfWeek(new Date()), i)));
+  const now = new Date();
+  const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+  const stats = {
+    todayMinutes: 0, todaySessions: 0,
+    weekMinutes: 0, weekSessions: 0,
+    monthMinutes: 0, monthSessions: 0,
+    totalMinutes: 0, totalSessions: 0,
+  };
+
+  studyLog.forEach((entry) => {
+    stats.totalMinutes += entry.minutes;
+    stats.totalSessions += 1;
+    if (entry.date === today) {
+      stats.todayMinutes += entry.minutes;
+      stats.todaySessions += 1;
+    }
+    if (weekDayKeys.includes(entry.date)) {
+      stats.weekMinutes += entry.minutes;
+      stats.weekSessions += 1;
+    }
+    if (entry.date.startsWith(monthPrefix)) {
+      stats.monthMinutes += entry.minutes;
+      stats.monthSessions += 1;
+    }
+  });
+
+  return stats;
+}
+
+function getDailyStudyTotals(studyLog, days = 14) {
+  const result = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = addDays(new Date(), -i);
+    const dateKey = formatDateKey(d);
+    const minutes = studyLog.filter((e) => e.date === dateKey).reduce((sum, e) => sum + e.minutes, 0);
+    result.push({ date: d, dateKey, minutes });
+  }
+  return result;
+}
+
 /* ------------------------------ AYUDANTES -------------------------------- */
 
 function courseTotals(course, completedMap) {
@@ -1368,7 +1442,7 @@ function topicTotals(course, topic, completedMap) {
 // celular retrocedan un paso dentro de Kingdom Level en vez de salir del sitio.
 // Profundidad de cada vista dentro de la jerarquía, usada para decidir si una
 // transición de pantalla debe sentirse como "avanzar" o "retroceder".
-const VIEW_DEPTH = { home: 0, levels: 1, flashcards: 1, planner: 1, course: 1, topic: 2, class: 3, notesCourse: 1, notesTopic: 2 };
+const VIEW_DEPTH = { home: 0, levels: 1, flashcards: 1, planner: 1, studylog: 1, course: 1, topic: 2, class: 3, notesCourse: 1, notesTopic: 2 };
 
 function hashForNav(next) {
   switch (next.view) {
@@ -1378,6 +1452,8 @@ function hashForNav(next) {
       return '#repaso';
     case 'planner':
       return '#planificador';
+    case 'studylog':
+      return '#tiempo-de-estudio';
     case 'course':
       return `#curso/${next.courseId}`;
     case 'topic':
@@ -1570,6 +1646,7 @@ function Header({
   onPomodoroChangeBreak,
   onSearchNavigate,
   onOpenFlashcards,
+  onOpenPlanner,
 }) {
   const visual = getLevelVisual(level);
   const effectiveStreak = progressLoaded ? getEffectiveStreak(streak) : 0;
@@ -1607,6 +1684,16 @@ function Header({
         >
           <Repeat size={16} color={C.emerald} />
           <span className="text-xs font-semibold" style={{ color: C.text }}>¡Estudiemos!</span>
+        </button>
+
+        <button
+          onClick={onOpenPlanner}
+          className="pomodoro-pill flex items-center gap-2 rounded-full px-3 py-2"
+          style={{ background: C.surface, border: `1px solid ${C.border}`, cursor: 'pointer' }}
+          title="Planificador de estudio"
+        >
+          <CalendarDays size={16} color={C.gold} />
+          <span className="text-xs font-semibold" style={{ color: C.text }}>¡Planifica!</span>
         </button>
 
         <div
@@ -2005,6 +2092,15 @@ function NotesCourseView({ course, onBack, onOpenTopic }) {
 function NotesTopicView({ course, topic, onBack }) {
   const topicIndex = course.topics.findIndex((t) => t.id === topic.id);
   const notes = topic.notes || { summary: '', keyPoints: [], notesLink: '#' };
+  const embedUrl = driveShareLinkToEmbedUrl(notes.notesLink);
+  const pdfWrapRef = useRef(null);
+
+  function handleFullscreenPdf() {
+    const el = pdfWrapRef.current;
+    if (!el) return;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); // Safari
+  }
 
   return (
     <div className="px-6 md:px-10 pb-20">
@@ -2047,27 +2143,57 @@ function NotesTopicView({ course, topic, onBack }) {
         </ul>
       </div>
 
-      {/* Acceso a los apuntes reales, alojados externamente (ej. una carpeta de Drive) */}
-      <div
-        className="rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
-        style={{ background: `linear-gradient(135deg, ${course.color}18, ${C.surface})`, border: `1px solid ${course.color}55` }}
-      >
-        <div className="flex items-center gap-4">
-          <Crest color={course.color} Icon={FolderOpen} size={54} />
-          <div>
-            <p style={{ color: C.text }} className="text-sm font-semibold mb-1">Apuntes completos del tema</p>
-            <p style={{ color: C.mutedDim }} className="text-xs">Guardados en una carpeta externa · se abre en una pestaña nueva</p>
+      {/* Apuntes completos en PDF, alojados en Google Drive pero mostrados aquí mismo, sin salir de la página */}
+      <div className="rounded-2xl p-4 md:p-6" style={{ background: C.surface, border: `1px solid ${course.color}55` }}>
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <Crest color={course.color} Icon={FileText} size={44} />
+            <div>
+              <p style={{ color: C.text }} className="text-sm font-semibold">Apuntes completos del tema</p>
+              <p style={{ color: C.mutedDim }} className="text-xs">PDF en Google Drive, visible aquí mismo</p>
+            </div>
           </div>
+          {embedUrl && (
+            <div className="flex items-center gap-4 shrink-0">
+              <button
+                onClick={handleFullscreenPdf}
+                className="text-xs flex items-center gap-1"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: course.color, padding: 0 }}
+              >
+                <Maximize2 size={13} /> Pantalla completa
+              </button>
+              <a
+                href={notes.notesLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs flex items-center gap-1"
+                style={{ color: course.color }}
+              >
+                Abrir en una pestaña nueva <ArrowUpRight size={13} />
+              </a>
+            </div>
+          )}
         </div>
-        <a
-          href={notes.notesLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="community-cta btn-tap inline-flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full shrink-0"
-          style={{ background: `linear-gradient(90deg, ${course.color}, ${darken(course.color, 0.25)})`, color: '#0A0C10' }}
-        >
-          <FolderOpen size={16} /> Abrir apuntes <ArrowUpRight size={16} />
-        </a>
+
+        {embedUrl ? (
+          <div
+            ref={pdfWrapRef}
+            className="pdf-viewer-wrap rounded-xl overflow-hidden"
+            style={{ border: `1px solid ${C.border}`, height: 'min(85vh, 900px)', background: '#1c1c1c' }}
+          >
+            <iframe
+              src={embedUrl}
+              title={`Apuntes de ${topic.title}`}
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              allow="autoplay"
+            />
+          </div>
+        ) : (
+          <div className="rounded-xl p-8 text-center flex flex-col items-center gap-3" style={{ border: `1px dashed ${C.border}` }}>
+            <FileText size={28} color={C.mutedDim} />
+            <p className="text-sm" style={{ color: C.mutedDim }}>Todavía no hay un PDF configurado para este tema.</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -3601,6 +3727,107 @@ function SearchWidget({ onNavigate }) {
   );
 }
 
+/* Tarjeta de estadística chica, reutilizada 3 veces en el registro de tiempo. */
+function StudyStatCard({ label, value, sub, color, Icon }) {
+  return (
+    <div className="rounded-2xl p-5 card-in" style={{ background: C.surface, border: `1px solid ${color}55` }}>
+      <div className="flex items-center gap-2 mb-3" style={{ color }}>
+        <Icon size={16} />
+        <span className="text-xs uppercase" style={{ letterSpacing: '0.15em' }}>{label}</span>
+      </div>
+      <p style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-2xl mb-1">{value}</p>
+      <p className="text-xs" style={{ color: C.mutedDim }}>{sub}</p>
+    </div>
+  );
+}
+
+/* Registro de tiempo de estudio: se alimenta solo de las sesiones de Pomodoro
+   que terminan de verdad (no de las que se saltan a mano). */
+function StudyLogView({ studyLog, onBack }) {
+  const stats = computeStudyStats(studyLog);
+  const daily = getDailyStudyTotals(studyLog, 14);
+  const maxMinutes = Math.max(...daily.map((d) => d.minutes), 1);
+
+  return (
+    <div className="px-6 md:px-10 pb-20">
+      <button
+        onClick={onBack}
+        className="back-btn flex items-center gap-2 text-sm mb-8 mt-6"
+        style={{ color: C.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+      >
+        <ChevronLeft size={16} className="back-chevron" /> Volver al reino
+      </button>
+
+      <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-8 p-6 md:p-8 rounded-2xl" style={{ background: C.surface, border: `1px solid ${C.gold}55` }}>
+        <Crest color={C.gold} Icon={Timer} size={64} pulse />
+        <div className="flex-1 min-w-0">
+          <span className="text-xs uppercase" style={{ color: C.gold, letterSpacing: '0.2em' }}>Tiempo de estudio</span>
+          <h2 style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-xl md:text-2xl mt-2 mb-2">
+            Tu registro con el Pomodoro
+          </h2>
+          <p className="text-sm" style={{ color: C.muted }}>
+            {stats.totalSessions === 0
+              ? 'Todavía no completaste ninguna sesión de enfoque. Arranca el Pomodoro cuando quieras.'
+              : `En total llevas ${formatStudyMinutes(stats.totalMinutes)} estudiados, en ${stats.totalSessions} ${stats.totalSessions === 1 ? 'sesión' : 'sesiones'}.`}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+        <StudyStatCard
+          label="Hoy"
+          value={formatStudyMinutes(stats.todayMinutes)}
+          sub={`${stats.todaySessions} ${stats.todaySessions === 1 ? 'sesión' : 'sesiones'}`}
+          color={C.gold}
+          Icon={Flame}
+        />
+        <StudyStatCard
+          label="Esta semana"
+          value={formatStudyMinutes(stats.weekMinutes)}
+          sub={`${stats.weekSessions} ${stats.weekSessions === 1 ? 'sesión' : 'sesiones'}`}
+          color={C.emerald}
+          Icon={CalendarDays}
+        />
+        <StudyStatCard
+          label="Este mes"
+          value={formatStudyMinutes(stats.monthMinutes)}
+          sub={`${stats.monthSessions} ${stats.monthSessions === 1 ? 'sesión' : 'sesiones'}`}
+          color="#5B8DBF"
+          Icon={TrendingUp}
+        />
+      </div>
+
+      <h3 style={{ fontFamily: FONT_DISPLAY, color: C.text }} className="text-lg mb-4">
+        Últimos 14 días
+      </h3>
+      <div className="flex flex-col gap-2 rounded-2xl p-5" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
+        {daily.map((d) => {
+          const isToday = d.dateKey === todayStr();
+          const pct = Math.round((d.minutes / maxMinutes) * 100);
+          return (
+            <div key={d.dateKey} className="flex items-center gap-3">
+              <span className="text-xs shrink-0" style={{ color: isToday ? C.gold : C.mutedDim, width: 46 }}>
+                {PLANNER_WEEKDAY_LABELS[(d.date.getDay() + 6) % 7]} {d.date.getDate()}
+              </span>
+              <div className="flex-1 rounded-full" style={{ height: 10, background: C.border, overflow: 'hidden', position: 'relative' }}>
+                {d.minutes > 0 && (
+                  <div
+                    className="rounded-full"
+                    style={{ height: 10, width: `${Math.max(pct, 4)}%`, background: isToday ? C.gold : `${C.gold}99`, transition: 'width 0.5s ease' }}
+                  />
+                )}
+              </div>
+              <span className="text-xs shrink-0 text-right" style={{ color: d.minutes > 0 ? C.text : C.mutedDim, width: 64 }}>
+                {d.minutes > 0 ? formatStudyMinutes(d.minutes) : '—'}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------ POMODORO ---------------------------------- */
 /* Temporizador de estudio global: vive en el componente principal (App), no
    dentro de ninguna vista, así que cambiar de clase, tema o curso NUNCA lo
@@ -3911,6 +4138,52 @@ export default function KingdomLevel() {
     // La racha de días NO se toca: es sobre constancia, no sobre cuánto contenido completaste.
   }
 
+  // --- Registro de tiempo de estudio --------------------------------------
+  // Se alimenta solo de sesiones de enfoque del Pomodoro que terminan de
+  // verdad (nunca de una salteada a mano). Guarda { date, minutes } por cada
+  // sesión completada, en su propia clave.
+  const STUDY_LOG_KEY = 'kingdomlevel-study-log';
+  const [studyLog, setStudyLog] = useState([]);
+  const [studyLogLoaded, setStudyLogLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await window.storage.get(STUDY_LOG_KEY, false);
+        if (!cancelled && result && result.value) {
+          const parsed = JSON.parse(result.value);
+          if (Array.isArray(parsed)) setStudyLog(parsed);
+        }
+      } catch (err) {
+        // Primera visita: todavía no hay nada registrado.
+      } finally {
+        if (!cancelled) setStudyLogLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!studyLogLoaded) return;
+    const t = setTimeout(() => {
+      (async () => {
+        try {
+          await window.storage.set(STUDY_LOG_KEY, JSON.stringify(studyLog), false);
+        } catch (err) {
+          // Sin bloquear la experiencia; se reintenta con el próximo cambio.
+        }
+      })();
+    }, 500);
+    return () => clearTimeout(t);
+  }, [studyLog, studyLogLoaded]);
+
+  function logStudySession(minutes) {
+    setStudyLog((prev) => [...prev, { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, date: todayStr(), minutes }]);
+  }
+
   // --- Temporizador Pomodoro (global) -------------------------------------
   // Vive acá, en App, y no dentro de ninguna vista — por eso nunca se
   // reinicia al cambiar de clase, tema o curso. La duración de cada fase es
@@ -4078,11 +4351,12 @@ export default function KingdomLevel() {
     return () => clearInterval(id);
   }, [pomodoroRunning]);
 
-  function advancePomodoroPhase() {
+  function advancePomodoroPhase(completedNaturally) {
     playPomodoroChime();
     setPomodoroRunning(false);
     if (pomodoroMode === 'focus') {
       setPomodoroSessionsDone((n) => n + 1);
+      if (completedNaturally) logStudySession(pomodoroFocusMinutes); // solo cuenta si el tiempo se cumplió de verdad
       setPomodoroMode('break');
       setPomodoroSecondsLeft(pomodoroBreakMinutes * 60);
       setPomodoroFlash('¡Sesión de enfoque terminada! Hora de un descanso.');
@@ -4873,6 +5147,7 @@ export default function KingdomLevel() {
         onPomodoroChangeBreak={changePomodoroBreakMinutes}
         onSearchNavigate={handleSearchNavigate}
         onOpenFlashcards={openFlashcards}
+        onOpenPlanner={openPlanner}
       />
 
       <div
